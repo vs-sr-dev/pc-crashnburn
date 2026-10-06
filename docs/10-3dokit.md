@@ -104,3 +104,16 @@ on the folio's own code: its start of the system VDLs and `launchme`'s
 ten Graphics calls up to `SPORT` agree with the runtime byte for byte
 (its first run caught a wrong constant in the runtime's full VDL entry),
 and two faults put in by hand are caught.
+
+| 3dokit | What |
+|---|---|
+| 3fccf88 | `runtime/pf_io`: devices, IOReqs, `SendIO` and `CompleteIO` as the 1993 kernel runs them, the task's allocated signals, a device's open count; the SPORT device from the SDK's documentation |
+| 70c0567 | README: the same |
+
+These touch no module the regression battery runs (the battery's Python
+is 332b0f1's). The self-test replays with 0 failures; `pfcheck`'s six
+memory runs and the eleven Graphics replays from the new boot are clean.
+On `pfboot`, Immercenary's `p` now runs to its 113th call (`DeleteItem`:
+the `timer` device it asks for at its 18th does not exist yet, and it
+sends 47 IOReqs that were never made); OMF2097's `LaunchMe` still stops
+at its 2nd (`VFPRINTF`).

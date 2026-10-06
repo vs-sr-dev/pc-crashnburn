@@ -292,9 +292,9 @@ the folio's own code (`pfboot --snap`, `python -m 3dokit.pfcheck
   VDLTYPE_SIMPLE: one 38-word entry per bitmap from the OS's VRAM, a
   header of 240 lines, the bitmap's buffer twice, the link, a display
   control word chosen by the width -- 320, 384, 512, 640 or 1024 -- and
-  the grey ramp; the last entry links to post-display; type 1 builds a
-  longer per-line VDL, types 2, 3 and 5 are `GRAFERR_NOTYET`), the VDL
-  item, `InitList(scr_BitmapList, "ScreenBitmapList")`, and its Bitmap:
+  the grey ramp; the last entry links to post-display; type 1, not read
+  to the end, allocates `8 * height + 32` words a bitmap; types 2, 3 and
+  5 are `GRAFERR_NOTYET`), the VDL item, `InitList(scr_BitmapList, "ScreenBitmapList")`, and its Bitmap:
   width, height, clip size, `bm_WatchDogCtr` 62,500, `bm_CEControl`
   0xe1500000, `REGCTL0` from an 18-entry table of widths (320 is 0x1414),
   `REGCTL1` the clip size, `REGCTL2`/`3` the buffer, the vertical offset.
@@ -313,3 +313,46 @@ the folio's own code (`pfboot --snap`, `python -m 3dokit.pfcheck
   (`CreateSizedItem(MKNODEID(1, 14), {CREATEIOREQ_TAG_DEVICE, device})`),
   kept at 0x6495c and 0x64960, the device at 0x64964. Without it
   `InitHardware` fails (`InitHardare failed`) and `main` tears down.
+
+## Devices and IO, read in the 1993 kernel
+
+What the game's SPORT calls need, read in `os_code` and done the same way
+by the runtime (`3dokit/runtime/pf_io.cpp`):
+
+* **The lib's IO glue** (1993's, linked in the game): `CheckIO`
+  (0x2e728) is `LookupItem` then `io_Flags & IO_DONE` (+0x58); `WaitIO`
+  (0x2e74c) returns at once when `IO_QUICK` is set, waits on the reply
+  port when `io_MsgItem` is a message, and otherwise polls `CheckIO`
+  around `WaitSignal(SIGF_IODONE)`; `DoIO` (0x2e7c4) sets `IO_QUICK` in
+  the IOInfo, then `SendIO` and `WaitIO`. The game also polls `CheckIO`
+  in loops of its own (`TopOfFrame` 0xc28, `DrawRoad` 0xedcc).
+* **An IOReq** (`CreateSizedItem(MKNODEID(1, 14), tags)`, 0x13c88):
+  tags `TAG_ITEM_NAME`, `TAG_ITEM_PRI`, `CREATEIOREQ_TAG_REPLYPORT` (10),
+  `CREATEIOREQ_TAG_DEVICE` (11, required, and the device must be open);
+  the node is `dev_IOReqSize` (0x70 by default) on the device's list
+  "Device ioreqs", born with `IO_DONE|IO_QUICK`. Without a reply port,
+  `io_MsgItem` and `io_SigItem` are both the task.
+* **`SendIO`** (SWI 24, 0x142e8): the IOReq must be the task's and done;
+  the 32-byte IOInfo is copied in; `ioi_Flags2` must be 0 and
+  `ioi_Flags` only `IO_QUICK`; the unit at most `dev_MaxUnitNum`; what it
+  receives into must be writable by the task (slot -168), what it sends
+  from inside memory. The internal SendIO (0x142b4) clears `io_Error`,
+  `io_Actual`, `IO_DONE`, sets `IO_QUICK` if asked, and jumps to the
+  driver's dispatch.
+* **`CompleteIO`** (0x141c0, a kernel function, no SWI in 1993):
+  `IO_DONE`; a callback chains the next request; a quick request tells no
+  one; otherwise a reply to the message, or `SIGF_IODONE` (8) to the task
+  through the kernel's signal (0x19c70), which refuses bits outside
+  `t_AllocatedSigs` (0xff from `CreateTask`, 0x16ce4).
+* **The SPORT device is not on the disc.** Neither `os_code` (which names
+  no device at all) nor `misc_code` (another kernel) nor any folio names
+  it; the console's ROM brings it (the FZ-1 ROM's
+  compressed programs open it, and none defines it). The runtime's SPORT
+  follows the SDK's documentation ("The SPORT Device"): CLONE (4) and COPY
+  (5) under the mask in `ioi_Offset`, FLASHWRITE (6) under
+  `ioi_CmdOptions`, whole VRAM pages only. On the console a copy or clone
+  waits for the vertical blank; here it is done at once.
+* **What the game does with it** (0x1724): a 2 KB page of its clear
+  colour (`InitClearPage` allocates 4 KB of `VRAM|CEL` and aligns down),
+  CLONEd over the whole bitmap: 153,600 bytes from 0x200000 for the first
+  screen. It clears both screens this way before `InitSoundsAndMusic`.

@@ -90,3 +90,29 @@
   MemHdr, the game asks for two screens in that bank, and stops at
   `CreateScreenGroup`, whose user half and supervisor half (SWI 0x20032,
   0x27a0 in GRAPHIX) are the next session's.
+
+## Session 5 (2026-10-06/07) — the screens, and the first device
+
+* **The screens, read in GRAPHIX** (`03-executables.md`): the 1993 folio's
+  own node sizes (its ScreenGroup and VDL are shorter than the headers'),
+  its system VDLs, `CreateScreenGroup`'s user half and SWI 50 to the end
+  of the type the game uses, `AddScreenGroup` and the averaging calls,
+  and the kernel's `CheckItem` and its 1993 write check (slot -168).
+  3dokit now makes all of them the same way.
+* **A Graphics call is checked on GRAPHIX itself**: `pfboot --snap N DIR`
+  writes the memory before and after the N-th OS call, and `pfcheck
+  --graphix` replays it on the folio's own code, loaded at 0x700000 by its
+  own relocations (`aif.relocated`), with the kernel's own allocator,
+  `InitList`, `CheckItem` and write check. The folio's start of its VDLs
+  and the game's ten Graphics calls agree byte for byte; the first run
+  found a wrong constant in the runtime, and two faults put in by hand
+  are caught.
+* **Devices and IO, read in the kernel**: IOReqs, `SendIO` and
+  `CompleteIO` as the 1993 kernel runs them, with the task's signals. The
+  SPORT device is not on the disc (the console's ROM brings it; the ROM's
+  own programs only open it), so the runtime's follows the SDK's
+  documentation, its copies done at once rather than at the vertical
+  blank. The game clears its two screens with it.
+* **Where the run stops**: `Initing Sounds and Music`, the audio folio
+  opened, and its first call, `LoadInsTemplate` of `mixer8x2.dsp`: the
+  sound is next. Immercenary's `p` runs on to its 113th call.
