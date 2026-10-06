@@ -60,3 +60,22 @@ eight other programs' 1,016 replay with 0 failures, and two of them boot
 on `pfboot` too (Immercenary's `p` prints `GAME: Entering main game
 task.`; OMF2097's `LaunchMe` reaches `AllocMemFromMemLists`). The other
 commits touch no module the regression battery runs.
+
+## Session 4
+
+| 3dokit | What |
+|---|---|
+| b7eed62 | `aif`: compressed images unpacked by their own decompressor, run in `armemu` (`decompress`, `--decompress`); `os_code`'s 16-byte boot header (`unwrap`) |
+| 93c2c33 | `runtime/pf_mem`: the MemHdrs, the OS's and the task's MemLists and the allocator, as the 1993 kernel runs them; `pf_graphics`: the Graphics folio's node; list primitives; `pf_boot`; `pfboot --memtest` and `pfcheck`, which replays the run on the kernel's own code |
+
+Checked with the battery on the nine programs and the three trees (`aif
+--scan`, `dsp --verify`, `portfolio --sites`, `arm60 --check`,
+`recomp.discover --report` and its function list, `arm --names`), run from
+the submodule's 5ffff74 and from the new kit: all 51 outputs
+byte-identical. `launchme`'s self-test (the instruction test and three
+vector sets: 1,275 functions, 18,393 vectors) replays with 0 failures; the
+runtime change touches only the Portfolio objects, which the self-test
+does not link. On `pfboot`, Immercenary's `p` runs to its 19th OS call
+(`memset`) and OMF2097's `LaunchMe` to its 2nd (`VFPRINTF`).
+`pfcheck`: six runs of 4,000 memory calls, every result and every byte of
+guest memory the kernel's; two faults put in by hand are caught.

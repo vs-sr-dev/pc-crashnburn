@@ -171,9 +171,10 @@ build/disc/launchme`): 4 of the 53 on the disc, `varmono8`, `mixer8x2`,
 
 ## What the strings say the game does with the OS
 
-* **Screens**: `cnbOpenGraphics`, `InitHardware`, `AlterVDL`, `Kernel
-  VRAM`, `Task's VRAM`, `Bank 2 (VRAM)`, `Bank 3 (VRAM)`: its own memory
-  banks, two of them in VRAM, and VDLs it edits.
+* **Screens**: `cnbOpenGraphics`, `InitHardware`, `AlterVDL`, `Bank 2
+  (VRAM)`, `Bank 3 (VRAM)`: its own memory banks, two of them in VRAM, and
+  VDLs it edits. (`Kernel VRAM` and `Task's VRAM` are lib3DO's
+  `ReportMemoryUsage`, 0x2a8f8, which nothing calls.)
 * **Files**: its own CD layer, `CDIO_OpenFileSystem`, `CDIO_OpenAFile`,
   `CDIO_ReadSectors` (whole sectors only), `CDIO_Seek`, `CDIO_ASYNCRead`
   (`SendIO`, a pool of IOReqs), on which `ASYNC_LoadSomeMore` streams the
@@ -185,3 +186,70 @@ build/disc/launchme`): 4 of the 53 on the disc, `varmono8`, `mixer8x2`,
   `mixer8x2.dsp` by path.
 * **Movies**: `FMV_Open`, `FMV_DecompressFrame`, `FMV's CCB buffer`: the
   studio's codec, drawn as a cel.
+
+## Memory: what the game reads of the OS's
+
+The game takes memory from the OS through the SDK's macros, and reads the
+OS's memory structures itself, so they have to be where `mem.h` puts them:
+
+* **Its banks** (`InitMemoryAllocationSystem`, 0x145c8):
+  `AllocMemFromMemLists(KernelBase->kb_CurrentTask->t_FreeMemoryLists,
+  ...)` (KernelBase +0x98, Task +0xa8) for bank 2, 0x64000 bytes of
+  `MEMTYPE_VRAM|MEMTYPE_CEL` (`Bank 2: %d VRAM bytes.`), then bank 0,
+  0xc0000 bytes of `MEMTYPE_DRAM|MEMTYPE_CEL` (`Bank 0: %d DRAM bytes.`),
+  which the game then shares out itself (the messages of `SetImagePointers`
+  and `AllocateMemory` name the banks).
+* **Every frame** (`WriteMemoryUsageToRam`, 0x263c, from `TopOfFrame` and
+  `GlueShell`): `mySumAvailMem` (0x2a898) over `kb_MemFreeLists`
+  (KernelBase +0x74) and the task's lists, for DRAM and for VRAM: the first
+  MemList whose `meml_Types & 0x70000` holds the kind asked (DRAM's
+  `MEMTYPE_DRAM` masks to 0, so DRAM's MemList must come first), the sum of
+  the `n_Size` of the free nodes on its `meml_l`, and the pages set in
+  `meml_OwnBits` times its MemHdr's `memh_PageSize`; four words at
+  0x56adc-0x56af8.
+* **The screens' bank** (`cnbOpenGraphics`, 0x10f8): `GetMemType`
+  (0x2e7f4, `FindMH` then `memh_Types`) of `GrafBase->gf_ZeroPage` (+0x78),
+  masked to the bank bits (0x70000000), as `CSG_TAG_SPORTBITS`; a screen's
+  size in pages from `gf_VRAMPageSize` (+0x80).
+
+## The OS on the disc, read
+
+`python -m 3dokit.aif --decompress` runs a compressed image's own
+decompressor in the interpreter. The 1993 kernel, `os_code` v0.16, is an
+AIF image behind a 16-byte boot header, linked at 0x10000, 49,968 bytes
+unpacked, with no embedded names. What was read of it, and what the
+runtime now does the same way (`3dokit/runtime/pf_mem.cpp`, checked
+against these functions by `python -m 3dokit.pfcheck`):
+
+* **Its tables**: the vector table ends at 0x1beac with slot -4 (`RemHead`);
+  every slot read is where the SDK names it (-28 `AllocMemFromMemLists`
+  0x15688, -32 `FreeMemToMemLists` 0x15370, -44 `ScavengeMem`, -52
+  `memset`, -60 `GetPageSize`, -100 `FindMH` 0x15e4c, -104 to -116 the
+  single-MemList functions). The SWI table runs backwards: SWI n at
+  0x1bddc - 4n (0 `CreateSizedItem` 0x13228, 13 `AllocMemBlocks` 0x15d5c, 20
+  `ControlMem` 0x16538, 33 `SystemScavengeMem` 0x157c0).
+* **Slot -120** (0x10ea0), the one the startup calls and no header names,
+  is the command line's parser: a non-zero word at the top of the stack is
+  the command line the loader left there, split into `argv` below it;
+  otherwise `argc` and `argv` go on as they came.
+* **Memory**: a MemHdr per kind, DRAM (`MEMTYPE_DRAM|CEL|DMA`, priority
+  101, 32 KB pages on a 2 MB machine) and VRAM (`BANKSELECT|BANK1|CEL|DMA|
+  VRAM`, `BANK2` too above 1 MB, priority 100, 16 KB pages, 2 KB VRAM
+  pages); a MemList per MemHdr on the OS's list and on every task's
+  ("task dram ml" at the head, "task vram ml" at the tail). Allocations are
+  16-byte multiples, first fit in address order from the bottom of a free
+  node; pages for a task come from the bottom of the MemHdr, the OS's from
+  the top; before asking for pages the allocator gives back every whole
+  free page of the pool (`ScavengeMem`), and without `MEMTYPE_FILL` it
+  writes the block's length into its first word.
+
+`GRAPHIX` (built 16 August 1993) unpacks to 28,164 bytes. When it starts
+it sets `gf_VRAMPageSize` to `GetPageSize(MEMTYPE_VRAM)` (2 KB), the
+default display 320 x 240, a VBL of 16,684 us at 60 Hz, and takes two VRAM
+pages from the OS's lists: the VIRS page and, after it, `gf_ZeroPage`.
+Its user vector table ends at 0x542c (slot -4, `MapCel`); many of its
+entries are two-instruction SWI glue. `CreateScreenGroup` (0x3e44) reads
+its tags against those defaults, allocates the bitmaps' VRAM from the
+caller's own lists (`MEMTYPE_VRAM|MEMTYPE_CEL`, page-rounded and
+`MEMTYPE_STARTPAGE` with the SPORT bits) and hands the rest to SWI
+0x20032.
