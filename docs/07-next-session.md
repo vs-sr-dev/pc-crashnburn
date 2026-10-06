@@ -1,45 +1,47 @@
-# Next session: naming the OS surface, and the oracle
+# Next session: the emitter, and an interpreter to check it
 
-Where things stand: the kit reads the disc and maps the code
-(`03-executables.md`); the route is chosen (`06-attack-plan.md`). Nothing
-is translated yet.
+Where things stand: every OS call the game reaches is named (33 SWIs, 41
+folio slots, `03-executables.md`); `3dokit.arm60` decodes ARMv3 exactly and
+`3dokit.recomp.discover` finds launchme's 553 functions with 0 descents
+into data. Phoenix runs the game and is the reference; Opera does not
+(`08-oracle.md`). Nothing is translated yet.
 
-## The work
+## The work (`09-recompiler.md`)
 
-1. **The SDK's headers as a reference.** Clone trapexit's `3do-devkit`
-   (headers and libraries of the 3DO SDK) outside the repositories, e.g.
-   `D:\Homebrew6\refs\3do-devkit`, read only: the SWI numbers and the
-   folio vector slots of the Kernel, Graphics, audio, File and Operamath
-   folios. Check them against this disc's OS (v0.16, 1993) before
-   trusting them: numbers may have moved between releases.
-2. **Name the surface** in `3dokit.portfolio`'s tables: the 35 SWIs and
-   the 75 + 38 vector slots of `launchme`, each name checked at its call
-   sites (arguments, use of the result) in the game's code, whose
-   functions are named.
-3. **The libraries.** Name the 292 functions the compiler did not name
-   (the libraries linked after 0x2d2f4 -- C library, graphics.lib, audio
-   glue -- and any hand-written routines; where each lies is to be
-   counted) with `3dokit.shapes`
-   against the devkit's `.lib` objects, where their shapes match the 1993
-   build; the rest by hand. Kept as a symbol file in `tools/`.
-4. **The oracle.** `tools/oracle.py`: RetroArch + `opera_libretro`
-   headless, the disc, screenshots at given frames and a recording, as
-   pc-deepfear's. A first run: what the game shows in its first 30
-   seconds (logos, the movie, the menu), to set the targets of phase 5.
-5. **The translator's design** written in `09-recompiler.md`, in the
-   manner of saturnkit's `recomp/` (`discover`, `emit`, `selftest`), and
-   a first `3dokit.recomp.discover` on `launchme`, compared with Ghidra's
-   function list (`ghidra/ExportFuncs.java`).
+1. **`3dokit.armemu`**: an ARM60 interpreter in Python over `arm60`'s
+   decoding -- the reference for the shifter, the flags, `ldm`/`stm`, the
+   unaligned `ldr`'s rotation -- with tests of its own.
+2. **`3dokit.recomp.emit`**: C++ per function against a CPU header (in
+   `3dokit/runtime/`, next to the C99 readers), switches as `switch`,
+   indirect transfers through the table of every function start; first
+   one small function, then all; `python -m 3dokit.recomp` writes
+   `build/recomp/` with its CMakeLists.
+3. **`3dokit.recomp.selftest`**: each function through the interpreter
+   and through the compiled C++, calls and OS calls stubbed, registers,
+   flags and memory compared.
+4. **The 8 non-OS indirect transfers** one by one: the drivers' AI table
+   (`DoEnemyAi`), `SpliceInOneObject` and 0x37694's pointer calls, the two
+   library routines that load `pc` from `[lr]` (0x41fd8, 0x42120: what
+   follows their callers), and the hand-written routine at 0x445d8 (what
+   it is, who reaches it).
+5. Ghidra's function list against `recomp.discover` (`--against`), with
+   `ghidra/ExportFuncs.java` from saturnkit adapted.
+
+## Questions for the user
+
+* On Phoenix: does the game's `kprintf` output show anywhere (its
+  debugger, a log window)? It would be the runtime's first comparison.
+* On the console (when convenient): the same start as Phoenix's?
 
 ## Keep in mind
 
-* Every 3dokit change is checked on Immercenary's and OMF2097's discs
-  (`aif --scan`, `dsp --verify`, `cel --check`, `arm --stats` before and
-  after) and recorded in `10-3dokit.md`; commit in the kit, then
-  `git pull --ff-only` in the submodule and commit the port.
-* The disc is `iso/Crash n Burn (USA Korea).cue` (a copy of the
-  documentation pipeline's `_work/cnb.bin`, sha1 8702aaf8...); the
-  extracted tree is `build/disc` (`python -m 3dokit.disc ... --extract
-  build/disc`).
-* Opera's source is a reference for the CEL engine and the OS's
-  behaviour: read, never copied (LGPL).
+* Every 3dokit change is checked on Immercenary's five programs and
+  OMF2097's LaunchMe (`aif --scan`, `dsp --verify`, `portfolio --sites`,
+  `arm60 --check`, `recomp.discover --report`, before and after) and
+  recorded in `10-3dokit.md`; commit in the kit, `git pull --ff-only` in
+  the submodule, commit the port.
+* Discs: `iso/Crash n Burn (USA Korea).cue` and `iso/disc-E.iso` (the
+  user's pressing, identical); the extracted tree is `build/disc`.
+* The SDK reference is `D:\Homebrew6\refs\3do-devkit` (read only).
+* Write Python that has backslashes or quotes in it with the Write tool,
+  never through a shell heredoc.

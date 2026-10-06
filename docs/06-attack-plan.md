@@ -24,7 +24,7 @@ Why it is favourable here, every point measured on the disc
 3. **The call graph closes statically.** ARM60 has no delay slots. Every
    jump that writes `pc` in reached code is one of four kinds, all
    bounded: 114 `mov pc, lr` returns; 116 folio vector calls (the OS
-   boundary, all found by `portfolio`); **17 switches** in the compiler's
+   boundary, all found by `portfolio`); **16 switches** in the compiler's
    form (`addls pc, pc, rN, lsl #2` then a run of `b`, its size set by the
    `cmp` before it: a C `switch`); and 15 calls through **pointer tables in
    the data** (drivers' AI, weapons, the car's init/move, death

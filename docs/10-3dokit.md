@@ -18,3 +18,17 @@ byte-identical before and after (57 and 39 images, 0 failing), `dsp
 of their programs (so `arm`'s output is unchanged). pc-immercenary still
 carries the kit in-tree at 76bf14d; moving it onto the submodule is that
 port's step, when the user says.
+
+## Session 2
+
+| 3dokit | What |
+|---|---|
+| fa94852 | `aof` (the SDK's ARM Object Format libraries, and the folio glue in them), `sdk` (105 SWIs and 184 slots named from the 1.2/1.3/2.5 headers and the 3do-devkit's libraries), `portfolio` named from them and reading the 1993 SDK's folio opener and shared pool word: launchme 75 → 113 of 116 sites attributed |
+| abdbb70 | `arm60`: the ARM60's instruction set, ARMv3 exactly, in pure Python; 0 disagreements with capstone on five programs |
+| eb84fdc | `recomp.discover`: functions, code and data, switches, indirect transfers; 0 descents into data on five programs |
+
+Checked on Immercenary's five programs and OMF2097's LaunchMe: `portfolio`
+attributes the same slots to the same folios as before (only the names
+change, to the SDK's); `arm60 --check` and `recomp.discover --report` run
+clean on `p`, `p1e` and OMF2097's `LaunchMe`. The SDK also corrects one
+reading in Immercenary's notes: SWI 0x10011 is `ReadHardwareRandomNumber`.

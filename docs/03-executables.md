@@ -52,7 +52,7 @@ at it. 3dokit's `aif` took the BL at 0x04 as the authority for this
   |---|---|---|
   | folio vector, `ldr pc, [rN, #-slot]` | 116 | the OS boundary |
   | return, `mov pc, lr` | 114 | (plus `ldm ..., pc`) |
-  | switch, `addls pc, pc, rN, lsl #2` + `b` table | 17 | `GlueShell`, `FMV_DecompressFrame`, `DrawHUD`... |
+  | switch, `addls pc, pc, rN, lsl #2` + `b` table | 16 (17 in session 1: one was data the linear sweep reached; `recomp.discover` finds 16) | `GlueShell`, `FMV_DecompressFrame`, `DrawHUD`... |
   | through a pointer in the data, `ldr pc, [...]` | 15 | `StartCars`, `PlayerSpecialCheck`, `DrawBitmapCar`, `SpliceInOneObject`... |
 
 * **Function pointers**: 47 relocated words point at function starts, 45
