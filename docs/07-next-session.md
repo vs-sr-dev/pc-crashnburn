@@ -67,9 +67,10 @@ Then what `--lenient` shows next: the game's banks
 
 ## Keep in mind
 
-* **Kernel -52 `memset` and -56 `memcpy`** are reached by the game (and
-  Immercenary's `p` stops at `memset`): the kernel's -56 (0x1130c) copies
-  backwards when the source is below the destination, so it is a memmove.
+* **Kernel -52 `memset` and -56 `memcpy`** are done (end of session 4):
+  both return the destination, and the kernel's -56 (0x1130c) copies
+  backwards when the source is below the destination, so the runtime's is
+  a memmove. Immercenary's `p` now runs to its 20th call (`SendIO`).
 * The OS's structures are the SDK headers'
   (`D:\Homebrew6\refs\3do-devkit\include\3dosdk`), with offsets from a
   compiler over them (`clang -target armv4-none-eabi -S` of a file of

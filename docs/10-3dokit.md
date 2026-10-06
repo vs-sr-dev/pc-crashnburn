@@ -79,3 +79,11 @@ does not link. On `pfboot`, Immercenary's `p` runs to its 19th OS call
 (`memset`) and OMF2097's `LaunchMe` to its 2nd (`VFPRINTF`).
 `pfcheck`: six runs of 4,000 memory calls, every result and every byte of
 guest memory the kernel's; two faults put in by hand are caught.
+
+| 3dokit | What |
+|---|---|
+| 5723f89 | Kernel `memset` and `memcpy` (a memmove, as the 1993 kernel's) |
+
+Checked the same way (battery from 93c2c33 and from the kit: 51 outputs
+byte-identical; self-test 0 failures); Immercenary's `p` runs to its 20th
+call (`SendIO`), `launchme` still stops at `CreateScreenGroup`.
