@@ -94,11 +94,8 @@ python -m 3dokit.aif --decompress build/disc/System/Kernel/os_code os_code.bin  
 
 ## Questions for the user
 
-* On the console the start is Phoenix's, except that the logo goes straight
-  to the intro movie, without the game/Preview choice (`08-oracle.md`).
-  What decides it is the game's: the command line `main` reads, or the
-  pad's answer to `DoLogoScreen` -- not the saves (`08-oracle.md`). The
-  console is an FZ-10 that has played the game before.
+* None open. (The console starts as Phoenix does; a button held during the
+  logo confirms the game/Preview choice before it shows: `08-oracle.md`.)
 
 ## Later, not next
 

@@ -26,29 +26,24 @@ emulator does differently is the emulator's.
 
 ## The console (the user's 3DO, with the same disc)
 
-The same as Phoenix (session 5, the user's look), with one difference: the
-Crystal Dynamics logo animation goes **straight to the game's introductory
-movie**, and the choice between Crash 'n Burn and the Preview never
-appears. The choice is the game's own: `DoLogoScreen` (0x20ef0), one of
-the screens `GlueShell`'s switch runs (0x1068), a dialog whose answer 1
-starts `DoPreviews` and whose 0 or 0x7f goes on to the game. What makes
-the console skip it is not known yet; it is something the game reads,
-since the disc and the scripts are the same. What the code says so far:
+An FZ-10 that has played the game before. **The same start as Phoenix**
+(session 5, the user's look): the logo animation, then the choice between
+Crash 'n Burn and the Preview, then the intro movie and the menu.
 
-* `main` (0x75c) goes to that screen (28) only when the word at 0x56768
-  is -1, which it is in the image. `main` sets it from the command line
-  (0x670): with exactly one argument of one or two digits below 30 it
-  becomes that number, the choice is skipped, and the number is handed on
-  (0x79c). So a loader that passed `launchme` such an argument would skip
-  the choice; the 1993 kernel's slot -120 does split a command line the
-  loader leaves on the stack.
-* Otherwise the choice is a dialog read from the pad (`DialogInput`,
-  0x1f148, with `GetJoystick`'s bits): an answer of 0 or 0x7f goes on to
-  the game at once, 1 to the Preview.
-* The saves are not read there: `LoadGameCheck` (the NVRAM's
-  `CNBTESTSAVE`) is reached only from `DoHackTitleScreen`, later.
+Holding A or Start during the logo animation skips the choice: the game
+goes straight to the intro movie. The choice is the game's own dialog,
+`DoLogoScreen` (0x20ef0, screen 28 of `GlueShell`'s switch), read from the
+pad (`DialogInput`, 0x1f148, with `GetJoystick`'s bits); a button down as
+it comes up confirms its first entry, Crash 'n Burn (answer 0 or 0x7f: the
+game; 1: `DoPreviews`). Without a button, the console waits on the choice
+as Phoenix does.
 
-The console is an FZ-10 that has played the game before (the user).
+Two other ways round it, read in the code, not seen: `main` (0x75c) shows
+the choice only when the word at 0x56768 is -1, as it is in the image, and
+sets it from the command line (0x670): one argument of one or two digits
+below 30 skips the choice and hands the number on (0x79c). The saves play
+no part there (`LoadGameCheck`, NVRAM's `CNBTESTSAVE`, is reached only from
+`DoHackTitleScreen`, later).
 
 ## Opera (libretro), in RetroArch: does not reach the game
 
