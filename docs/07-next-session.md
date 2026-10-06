@@ -96,9 +96,9 @@ python -m 3dokit.aif --decompress build/disc/System/Kernel/os_code os_code.bin  
 
 * On the console the start is Phoenix's, except that the logo goes straight
   to the intro movie, without the game/Preview choice (`08-oracle.md`).
-  What decides it is the game's (`DoLogoScreen`, 0x20ef0): which console
-  model it is, and whether it holds Crash 'n Burn saves in NVRAM, may say
-  why.
+  What decides it is the game's: the command line `main` reads, or the
+  pad's answer to `DoLogoScreen` -- not the saves (`08-oracle.md`). The
+  console is an FZ-10 that has played the game before.
 
 ## Later, not next
 

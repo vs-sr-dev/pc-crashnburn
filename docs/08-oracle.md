@@ -32,10 +32,23 @@ movie**, and the choice between Crash 'n Burn and the Preview never
 appears. The choice is the game's own: `DoLogoScreen` (0x20ef0), one of
 the screens `GlueShell`'s switch runs (0x1068), a dialog whose answer 1
 starts `DoPreviews` and whose 0 or 0x7f goes on to the game. What makes
-the console skip it is not known yet; it is something the game reads
-(the pad, NVRAM, a timer, the hardware or OS it finds), since the disc and
-the scripts are the same. The runtime will reach that screen and its
-inputs by its own trace.
+the console skip it is not known yet; it is something the game reads,
+since the disc and the scripts are the same. What the code says so far:
+
+* `main` (0x75c) goes to that screen (28) only when the word at 0x56768
+  is -1, which it is in the image. `main` sets it from the command line
+  (0x670): with exactly one argument of one or two digits below 30 it
+  becomes that number, the choice is skipped, and the number is handed on
+  (0x79c). So a loader that passed `launchme` such an argument would skip
+  the choice; the 1993 kernel's slot -120 does split a command line the
+  loader leaves on the stack.
+* Otherwise the choice is a dialog read from the pad (`DialogInput`,
+  0x1f148, with `GetJoystick`'s bits): an answer of 0 or 0x7f goes on to
+  the game at once, 1 to the Preview.
+* The saves are not read there: `LoadGameCheck` (the NVRAM's
+  `CNBTESTSAVE`) is reached only from `DoHackTitleScreen`, later.
+
+The console is an FZ-10 that has played the game before (the user).
 
 ## Opera (libretro), in RetroArch: does not reach the game
 
