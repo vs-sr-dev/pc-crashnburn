@@ -66,3 +66,27 @@
   then finds and opens the Graphics folio by name, and stops at `FindMH`,
   the memory lists'. Phoenix exposes no debug output (the user's look): it
   is the oracle for pictures and sound only.
+
+## Session 4 (2026-10-06, the same day) — memory, read in the 1993 kernel
+
+* **Why memory first**: the game reaches `FindMH` through lib3DO's
+  `GetMemType` of `GrafBase->gf_ZeroPage`, to put its screens in the zero
+  page's VRAM bank, and it walks the memory lists itself every frame
+  (`WriteMemoryUsageToRam`): the structures have to be `mem.h`'s, in guest
+  memory (`03-executables.md`, "Memory").
+* **The OS on the disc, read**: `3dokit.aif --decompress` runs a compressed
+  image's own decompressor in the interpreter, and the 1993 kernel
+  (`os_code` v0.16) and Graphics folio (`GRAPHIX`, 16 August 1993) became
+  readable. From them: the kernel's vector table and its backwards SWI
+  table, slot -120 (the command line's parser), the MemHdrs and MemLists
+  the kernel builds, its allocator, and what the Graphics folio puts in
+  its node when it starts.
+* **3dokit's memory** (`runtime/pf_mem.cpp`): the allocator as the kernel
+  runs it, checked by **replaying** it on the kernel's own code
+  (`pfboot --memtest`, `python -m 3dokit.pfcheck`): 24,000 calls, every
+  result and every byte of guest memory the kernel's; two faults put in by
+  hand are caught. The Graphics folio's node is filled as GRAPHIX fills it.
+* **Where the run stops**: `FindMH` of the zero page answers the VRAM
+  MemHdr, the game asks for two screens in that bank, and stops at
+  `CreateScreenGroup`, whose user half and supervisor half (SWI 0x20032,
+  0x27a0 in GRAPHIX) are the next session's.
