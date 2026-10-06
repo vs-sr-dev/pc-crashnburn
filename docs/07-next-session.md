@@ -18,19 +18,22 @@ build/recomp-build/pfboot build/disc/launchme [--trace 2] [--lenient]
 ## The calls, in the order the game makes them
 
 1. Kernel -120 (the startup's; handed through) and `kprintf` -- done.
-2. `ChangeDirectory("$boot")` (swi 0x30007, in `InitHardware`): the File
-   folio's current directory; `$boot` is the disc the program came from.
-3. `FindItem(0x104, tags)` (swi 0x10004, at 0x2ebbc): a folio by name, the
-   tags on the stack (`{1, name}`, then 0). Then `OpenItem`, then Kernel
-   -48 `LookupItem` for the folio's node, whose negative offsets are its
-   vector table (`pf_folio_base`). After that, with `--lenient`, `FindMH`.
+2. `ChangeDirectory("$boot")` (swi 0x30007, in `InitHardware`): `$boot` is
+   the disc the program came from, its root here -- done.
+3. `FindItem(0x104, {TAG_ITEM_NAME, "Graphics"})` (swi 0x10004, at
+   0x2ebbc), `OpenItem`, Kernel -48 `LookupItem`: the folio's node, whose
+   negative offsets are its vector table -- done (items, end of session 3).
+4. **Kernel -100 `FindMH`**, from the library stub at 0x3ec, with r0 = 0
+   and r1 = 0x6497c: where the run stops. It belongs to the memory lists
+   (`AllocMemFromMemLists`, `FreeMemToMemLists`, `ControlMem`): the next
+   piece is **memory** -- the task's memory lists over free DRAM and VRAM,
+   in the SDK's `MemHdr`/`MemList` layout where the game reads them.
 
-So the first piece is **items**: a table of item numbers to nodes in the
-OS's memory, the folios registered as items of type 0x104 with their
-names (Graphics, audio, File, Operamath), `FindItem` by type and tags,
-`OpenItem`/`CloseItem`, `LookupItem`, `CheckItem`, `IsItemOpened`. Then
-what `--lenient` shows next. `03-executables.md` lists everything the
-game reaches: 33 SWIs, Graphics 14 slots, Kernel 11, audio 12, File 4.
+Then what `--lenient` shows next. `03-executables.md` lists everything
+the game reaches: 33 SWIs, Graphics 14 slots, Kernel 11, audio 12, File 4.
+Items still to do as the game needs them: `CheckItem`, `IsItemOpened`,
+`CreateSizedItem`, `DeleteItem`, and the devices found by name (`SPORT`,
+`timer`, `mac`).
 
 ## Keep in mind
 

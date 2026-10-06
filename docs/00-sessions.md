@@ -62,6 +62,7 @@
 * **Phase 4 begins** (`3dokit/runtime/pf*`, `pfboot`): the program boots
   on a Portfolio frame, the folio tables hold traps, every SWI and slot is
   traced by its SDK name. `launchme` calls the startup's Kernel slot -120,
-  prints `...cnb...` with `kprintf`, and stops at `ChangeDirectory("$boot")`,
-  the first call not implemented; after it come `FindItem` for a folio,
-  `OpenItem`, `LookupItem`.
+  prints `...cnb...` with `kprintf`; with items and `ChangeDirectory` it
+  then finds and opens the Graphics folio by name, and stops at `FindMH`,
+  the memory lists'. Phoenix exposes no debug output (the user's look): it
+  is the oracle for pictures and sound only.

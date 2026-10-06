@@ -42,6 +42,7 @@ reading in Immercenary's notes: SWI 0x10011 is `ReadHardwareRandomNumber`.
 | d15a333 | `recomp.discover`: a load of pc from the word a function parked its lr in is a return (Crash 'n Burn's 0x41fd8 and 0x42120); the self-test refuses writes to code words only |
 | 627d87e | README: the other programs' self-test measured again |
 | fce69b2 | `runtime/pf*`: Portfolio's frame (the boot, the OS's memory, folio tables of traps, SWI and slot dispatch by the SDK's names, the trace) and `pfboot`; `arm_swi` takes the swi's address |
+| 5ffff74 | items (`FindItem`, `OpenItem`, `CloseItem`, `LookupItem`, the folios as items), `ChangeDirectory`, the OS's own allocations and untraced access |
 
 Checked on Immercenary's six programs (`launchme`, `p`, `p1e`,
 `SpeechSubroutine`, `CinepakSubroutine`, `StorageTuner`), OMF2097's
