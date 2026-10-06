@@ -45,9 +45,13 @@ English `translation.xml`; BIOS in `3DO\BIOS` (`panafz10.bin`,
 hard link to `iso/disc-E.iso`). Its changelog names Crash 'n Burn three
 times: "Crash'n'Burn working again" (1.9), and the pixel processor's
 second-source order of operations and the palette fixed for it (2.3,
-2.8). It is a GUI program, driven by the user; it has a debugger
-(breakpoints, trace, a device tree, debug dumps) and knows the SWIs by
-name, which is where the game's `kprintf` output is to be looked for.
+2.8). It is a GUI program, driven by the user. Its changelog speaks of
+a debugger (breakpoints, trace, a device tree, debug dumps), but the 2.8
+build exposes no debug option to the user (session 3, the user's look):
+the game's `kprintf` output has no window there, and no trace of OS
+calls comes out of it.
 
-So for now: **Phoenix is the reference for pictures and sound, run by the
-user**; Opera is kept for automated runs of what it does run.
+So: **Phoenix is the reference for pictures and sound, run by the
+user**; the order of the game's OS calls and of its own messages comes
+from the runtime's trace (`pfboot`) alone, checked against the game's
+code. Opera is kept for automated runs of what it does run.

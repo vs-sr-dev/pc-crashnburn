@@ -44,9 +44,9 @@ game reaches: 33 SWIs, Graphics 14 slots, Kernel 11, audio 12, File 4.
   stack (64 KB under 0x200000), VRAM is 0x200000-0x2fffff.
 * `--lenient` is a preview, not a run to trust: an unimplemented call that
   returns 0 sends the game down paths it never takes on the console.
-* The oracle is Phoenix (`08-oracle.md`): if its debugger shows
-  `kprintf` output, the order of the game's own messages is the first
-  comparison (the question below).
+* The oracle is Phoenix (`08-oracle.md`), for pictures and sound only:
+  it exposes no debug output, so the order of OS calls and `kprintf`
+  messages is checked against the game's code, not against a log.
 * Every 3dokit change: the regression battery on Immercenary's six
   programs, OMF2097's `LaunchMe` and Crash 'n Burn's two (`aif --scan`,
   `dsp --verify`, `portfolio --sites`, `arm60 --check`, `recomp.discover
@@ -58,8 +58,6 @@ game reaches: 33 SWIs, Graphics 14 slots, Kernel 11, audio 12, File 4.
 
 ## Questions for the user
 
-* On Phoenix: does the game's `kprintf` output show anywhere (its
-  debugger, a log window)?
 * On the console (when convenient): the same start as Phoenix's?
 
 ## Later, not next
