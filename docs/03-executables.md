@@ -68,27 +68,69 @@ at it. 3dokit's `aif` took the BL at 0x04 as the authority for this
   the OS, and dead code; to be sorted in phase 3.
 * **No hardware access**: no ROM, MADAM or CLIO address is loaded or
   built by reached code. Everything goes through Portfolio.
+* **The startup** (0x100, the AIF entry): the OS hands over the arguments
+  in r5 and r6 and **KernelBase in r7**; the startup keeps it in `sb` and in
+  a global (0x56730), calls Kernel slot -120 (a runtime initialisation no
+  SDK header names), and branches to `main` with the OS's `lr` (so `main`
+  returning returns to the OS; `swi 0x11` at 0x128 is the exit after it).
+  Every compiled function checks its stack (`cmp sp, sl; bllt 0x13c`), and
+  0x13c jumps to Kernel slot -124, the kernel's stack extension: a runtime
+  with a large stack and a low `sl` never takes it.
 
 ## The OS surface (`python -m 3dokit.portfolio build/disc/launchme --sites`)
 
-**35 SWI entry points**, 274 sites:
+Every number below is named by the SDK (`3dokit.sdk`: the 1.2, 1.3 and 2.5
+SDKs' headers, which agree, and the 3do-devkit's libraries' glue). Names
+are the SDK's; what each does in this game is phase 4's to check.
 
-| folio | functions | calls | named so far |
-|---|---|---|---|
-| 0 | 2 | 12 | -- (`0:0` x11 and `0:17` x1, in the startup and the libraries) |
-| 1 Kernel | 17 | 196 | WaitSignal, SendSignal, FindNamedItem, OpenItem, Yield, debug print (x122), ReplyMsg, AllocSignal |
-| 3 File / C runtime | 5 | 20 | -- |
-| 4 audio | 10 | 40 | -- (on this OS the audio folio is reached by SWIs) |
-| 5 Operamath | 1 | 6 | -- |
+**SWIs**: 274 sites, 34 entry points (the 35th, `swi 0` x11, is data the
+linear sweep decodes as `svcne #0`):
+
+| folio | | |
+|---|---|---|
+| 0 | 1 | `0x11` exit (the AIF header's own, at the startup's end) |
+| 1 Kernel | 17 | CreateSizedItem x17, DeleteItem x17, OpenItem x8, CloseItem, FindItem x2, SetItemPri x2, WaitSignal x5, SendSignal, AllocSignal, Yield x3, SendMsg x2, GetMsg x2, ReplyMsg, SendIO x7, ControlMem x4, SetFunction (in `main`), kprintf x122 |
+| 3 File | 5 | OpenDiskFile x9, CloseDiskFile x8, ChangeDirectory, CreateFile, DeleteFile |
+| 4 audio | 10 | TweakKnob x21, StartInstrument x3, ReleaseInstrument x2, StopInstrument, ConnectInstruments x3, DisconnectInstruments x3, SetAudioRate x2, LinkAttachments x2, SetAudioItemInfo, TestHack x2 |
+| 5 Operamath | 1 | MulManyVec3Mat33_F16 x6 |
 
 **Items opened by name**: the devices `SPORT` (twice), `mac` (twice),
 `timer`; the folios `Graphics`, `audio`, `File`.
 
-**Folio vectors**: 116 sites, 75 attributed entry points: Kernel 29 slots
-(LookupItem and the block copy named), File 4, audio 42, and 38 slots
-`portfolio` leaves unattributed. Those 38 are the Graphics folio's: their
-wrappers are one contiguous block, 0x2d860 to 0x2da00, just before the
-code that opens `Graphics` (0x2dab8).
+**Folio vectors**: 116 sites, 113 slots, every one attributed to its folio
+and all but one named:
+
+* **Graphics, 38**: the screens (CreateScreenGroup, AddScreenGroup,
+  RemoveScreenGroup, DisplayScreen, SetVDL, SubmitVDL, the CLUT's
+  SetScreenColor(s)/ResetScreenColors, Enable/Disable H/VAVG), the cel
+  engine (DrawCels, DrawScreenCels, SetCEControl, SetCEWatchDog, MapCel),
+  the bitmap's clip and read address, and the 2D pen calls (MoveTo, DrawTo,
+  FillRect, WritePixel, ReadPixel, GetPixelAddress, DrawChar, DrawText8/16,
+  the font CCB);
+* **Kernel, 29**: lists (AddHead/Tail, RemHead/Tail, RemNode, InsertNode*,
+  InitList, FindNamedNode), memory (AllocMem/FreeMem from mem lists,
+  ScavengeMem, GetPageSize), items (LookupItem, CheckItem, IsItemOpened),
+  memset/memcpy, USecToTicks/TicksToTimeVal, GetSysErr, vfprintf,
+  WaitPort -- and slot -120, which the AIF startup calls at 0x80 and no
+  SDK header or library names;
+* **audio, 42**: instruments and templates (LoadInstrument, AllocInstrument,
+  LoadInsTemplate, DefineInsTemplate, UnloadInstrument...), samples
+  (LoadSample, MakeSample, AttachSample, ScanSample...), knobs (GrabKnob,
+  GetNumKnobs, GetKnobName), envelopes, tunings, delay lines, the clock
+  (GetAudioTime, SleepAudioTicks, SleepUntilTime, Own/DisownAudioClock);
+* **File, 4**: OpenDiskStream, ReadDiskStream, SeekDiskStream,
+  CloseDiskStream.
+
+A slot named is a slot the game's library glue *can* reach; how many of
+them the game really calls is for the call graph (phase 3), and only those
+need a native implementation.
+
+**Library functions**: 28 of the 292 unnamed functions match a
+3do-devkit library function word for word over their whole length
+(relocated words and branch offsets masked): the kernel stubs at 0x304 to
+0x454, `__rt_sdiv`, `__rt_udiv`, `__rt_sdiv10`, `FindNamedItem`, `strcpy`,
+`rand`, `atoi`, the `*DiskStream` and `AddScreenGroup` glue. The rest
+differ: the devkit's libraries are later builds than 1993's.
 
 **DSP instruments** (`python -m 3dokit.dsp build/disc/System/Audio/dsp --used
 build/disc/launchme`): 4 of the 53 on the disc, `varmono8`, `mixer8x2`,
