@@ -121,9 +121,36 @@ and all but one named:
 * **File, 4**: OpenDiskStream, ReadDiskStream, SeekDiskStream,
   CloseDiskStream.
 
-A slot named is a slot the game's library glue *can* reach; how many of
-them the game really calls is for the call graph (phase 3), and only those
-need a native implementation.
+A slot named is a slot the game's library glue *can* reach. **What the
+game's code really reaches** (`3dokit.recomp.discover`: only code that
+control flow reaches from the entry, the names, the prologues and the
+relocated pointers) is much less, and it is the HLE's whole job:
+
+| | reached | |
+|---|---|---|
+| SWIs | 33 | exit, CreateSizedItem, DeleteItem, FindItem, OpenItem, CloseItem, SetItemPri, WaitSignal, SendSignal, AllocSignal, Yield, SendMsg, GetMsg, ReplyMsg, SendIO, ControlMem, SetFunction, kprintf; OpenDiskFile, CloseDiskFile, ChangeDirectory, CreateFile, DeleteFile; TweakKnob, StartInstrument, ReleaseInstrument, StopInstrument, ConnectInstruments, DisconnectInstruments, SetAudioRate, LinkAttachments, SetAudioItemInfo; MulManyVec3Mat33_F16 |
+| Graphics | 14 | DrawCels, MapCel, CreateScreenGroup, AddScreenGroup, DisplayScreen, SetScreenColor(s), Enable/DisableHAVG, Enable/DisableVAVG, SetClipOrigin/Width/Height |
+| Kernel | 11 | AllocMemFromMemLists, FreeMemToMemLists, FindMH, LookupItem, IsItemOpened, memset, memcpy, vfprintf, GetSysErr, WaitPort, and slot -120 (the startup's) |
+| audio | 12 | LoadInsTemplate, UnloadInsTemplate, AllocInstrument, GrabKnob, AttachSample, DetachSample, GetAudioRate, GetAudioTime, SleepUntilTime, Own/DisownAudioClock, ControlAudioDevice |
+| File | 4 | Open/Read/Seek/CloseDiskStream |
+
+No `DrawScreenCels`, no VDL calls (the strings' `AlterVDL` is the game's
+own, on its screen's colours), no 2D pen calls: every picture is a cel.
+
+## Discovery (`python -m 3dokit.recomp.discover build/disc/launchme --report`)
+
+553 functions (292 named, 46 more by prologue, 214 more as call targets,
+the entry), 43,793 code words; everything else in the image is data. 16
+switches (one whose last case's code follows the table). 17 functions are
+never called, tail-called or pointed at -- dead code: `SFXOn`/`SFXOff`,
+`MusicOn`/`MusicOff`, `ShootScreen`, `ReportMemoryUsage`, `CheckOverlap`,
+`ConcatenateAll`... Hand-written code sits past the compiler's read-only
+area, at 0x445d8, inside the read-write data (it saves every register into
+the zeros before it). Indirect transfers other than the OS's: 8 -- the
+drivers' AI table (`DoEnemyAi`, `ldr pc, [r1, r0, lsl #2]`),
+`SpliceInOneObject`'s pointer call, two library routines that load `pc`
+from `[lr]` (a table inline after their call, 0x41fd8 and 0x42120), the
+hand-written routine's `mov pc, r3`, and one more pointer call at 0x37694.
 
 **Library functions**: 28 of the 292 unnamed functions match a
 3do-devkit library function word for word over their whole length
