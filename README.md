@@ -73,6 +73,8 @@ boundary (`docs/06-attack-plan.md`).
 | [00-sessions](docs/00-sessions.md) | what each session did |
 | [03-executables](docs/03-executables.md) | the programs, the code, the OS surface |
 | [06-attack-plan](docs/06-attack-plan.md) | the route, where to cut, the phases |
+| [08-oracle](docs/08-oracle.md) | what the port is compared with: Phoenix, not Opera |
+| [09-recompiler](docs/09-recompiler.md) | the translator's design |
 | [07-next-session](docs/07-next-session.md) | where the next session starts |
 | [10-3dokit](docs/10-3dokit.md) | what this port gave 3dokit |
 

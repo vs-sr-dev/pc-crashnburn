@@ -111,10 +111,8 @@ to native functions.
 
 ## The oracle
 
-`opera_libretro` with `panafz10.bin`, both already in `F:\RetroArch 2`,
-driven the way pc-deepfear drives Beetle Saturn. It gives the reference
-pictures and sound, and for the HLE the order and arguments of OS calls
-as the real OS sees them. Opera itself is read, never copied (LGPL).
+Phoenix 2.8, which runs the game; Opera (libretro) does not get past the
+start (`08-oracle.md`). Emulators are read, never copied.
 
 ## Phases
 
