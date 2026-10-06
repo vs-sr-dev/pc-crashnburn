@@ -53,7 +53,16 @@ python -m 3dokit.arm build/disc/launchme --names
 python -m 3dokit.arm build/disc/launchme --stats
 python -m 3dokit.arm build/disc/launchme -d 644 -n 60          # main
 python -m 3dokit.portfolio build/disc/launchme --sites
+
+# the recompiler: C++ for the whole program, and its self-test
+python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme --optest
+python -m 3dokit.recomp.selftest --image launchme=build/disc/launchme --auto        --out build/recomp/selftest/launchme.txt
+cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
+ninja -C build/recomp-build
+build/recomp-build/selftest build/recomp/selftest/*.txt
 ```
+
+Building the C++ needs CMake, Ninja and clang (MSYS2's mingw64).
 
 ## Status
 
@@ -65,6 +74,17 @@ compiler's embedded function names). The code is surveyed: one program of
 bounded, no hardware access, all of the OS through Portfolio's folios. The
 route is static recompilation with the OS reimplemented at the folio
 boundary (`docs/06-attack-plan.md`).
+
+**Session 2**: every OS call the game reaches named (33 SWIs, 41 folio
+slots); the instruction set decoded exactly and the functions discovered;
+Phoenix runs the game and is the oracle.
+
+**Session 3**: the translator is whole. An ARM60 interpreter as the
+reference, the C++ emitter, and a self-test: `launchme` recompiles to C++
+(553 functions, 43,805 instructions), builds, and agrees with the
+interpreter on an instruction test of 891 functions and on the 138 game
+functions that run without the OS, with 0 failures
+(`docs/09-recompiler.md`). Next is the OS.
 
 ## Documentation
 

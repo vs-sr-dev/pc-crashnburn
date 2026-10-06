@@ -32,3 +32,23 @@ attributes the same slots to the same folios as before (only the names
 change, to the SDK's); `arm60 --check` and `recomp.discover --report` run
 clean on `p`, `p1e` and OMF2097's `LaunchMe`. The SDK also corrects one
 reading in Immercenary's notes: SWI 0x10011 is `ReadHardwareRandomNumber`.
+
+## Session 3
+
+| 3dokit | What |
+|---|---|
+| 318214d | `armemu`: the ARM60 interpreter, the recompiler's reference (8 known-answer tests; 27,819 random instructions agree with unicorn's ARM926); `arm60`: MUL's should-be-zero Rn set is undefined |
+| 87356c5 | `recomp.emit`, `python -m 3dokit.recomp`, `recomp.selftest`; the C++ runtime for recompiled code (`runtime/arm60.h`, `arm_core`, `arm_stub`, `arm_selftest`, `runtime.cmake`) |
+| d15a333 | `recomp.discover`: a load of pc from the word a function parked its lr in is a return (Crash 'n Burn's 0x41fd8 and 0x42120); the self-test refuses writes to code words only |
+| 627d87e | README: the other programs' self-test measured again |
+
+Checked on Immercenary's six programs (`launchme`, `p`, `p1e`,
+`SpeechSubroutine`, `CinepakSubroutine`, `StorageTuner`), OMF2097's
+`LaunchMe` and Crash 'n Burn's `launchme` and `Orion`, before and after
+each commit (`aif --scan` on the three trees, `dsp --verify`, `portfolio
+--sites`, `arm60 --check`, `recomp.discover --report` and its function
+list, `arm --names`): byte-identical, except `arm60 --check`'s count of
+refused words (data that decoded as a `mul` with Rn set: 1 to 292 per
+program) and `launchme`'s discovery report (pointer jumps 5 to 1). Every
+function of the nine recompiles with nothing refused; the eight besides
+`launchme` replay 1,016 functions, 15,722 vectors, with 0 failures.

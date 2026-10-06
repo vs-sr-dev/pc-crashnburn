@@ -146,11 +146,17 @@ never called, tail-called or pointed at -- dead code: `SFXOn`/`SFXOff`,
 `MusicOn`/`MusicOff`, `ShootScreen`, `ReportMemoryUsage`, `CheckOverlap`,
 `ConcatenateAll`... Hand-written code sits past the compiler's read-only
 area, at 0x445d8, inside the read-write data (it saves every register into
-the zeros before it). Indirect transfers other than the OS's: 8 -- the
-drivers' AI table (`DoEnemyAi`, `ldr pc, [r1, r0, lsl #2]`),
-`SpliceInOneObject`'s pointer call, two library routines that load `pc`
-from `[lr]` (a table inline after their call, 0x41fd8 and 0x42120), the
-hand-written routine's `mov pc, r3`, and one more pointer call at 0x37694.
+the zeros before it). Indirect transfers other than the OS's: 8 (session
+3, `09-recompiler.md`) -- the drivers' AI table (`DoEnemyAi`, a tail jump
+`ldr pc, [r1, r0, lsl #2]` through the table at 0x5cfb0),
+`SpliceInOneObject`'s pointer call, one more pointer call at 0x37694, the
+hand-written routine's `mov pc, r3` (the handler word before an object,
+which the relocations show is the routine's own start), and four `ldr pc`
+in two hand-written routines, 0x41fd8 and 0x42120, which are **returns**:
+each stores its `lr` in a word of its own on entry (0x41fd4, 0x42118) and
+leaves by loading `pc` from it. Session 2 read these as a table inline
+after the call; it is not. Discovery now finds them as returns, which
+leaves 4 transfers through pointers.
 
 **Library functions**: 28 of the 292 unnamed functions match a
 3do-devkit library function word for word over their whole length

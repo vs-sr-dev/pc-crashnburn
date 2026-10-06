@@ -1,92 +1,154 @@
-# The recompiler: design
+# The recompiler
 
 The translator is 3dokit's layer 4, written for this game and kept free of
-it, in the manner of saturnkit's and wiikit's `recomp/`: Python that reads
-an AIF image and writes C++ against a runtime header, one C++ function per
-guest function. This page is the design; nothing of it is written yet.
+it, in the manner of saturnkit's `recomp/`: Python that reads an AIF image
+and writes C++ against a runtime header, one C++ function per guest
+function. Session 2 designed it and wrote discovery; session 3 wrote the
+rest, and `launchme` now recompiles whole, builds, and agrees with the
+interpreter on every function that can run without the OS.
+
+```sh
+python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme --optest
+python -m 3dokit.recomp.selftest --image launchme=build/disc/launchme --auto \
+       --out build/recomp/selftest/launchme.txt
+cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
+ninja -C build/recomp-build
+build/recomp-build/selftest build/recomp/selftest/optest.txt build/recomp/selftest/launchme.txt
+```
+
+(CMake, Ninja and clang from MSYS2's mingw64, `C:\msys64\mingw64\bin`, put
+on the path for those two commands only: its own Python has no capstone.)
 
 ## What the input is
 
-* **ARM60**: ARMv3, 32-bit mode, big-endian, no Thumb, no halfword loads
-  (`ldrh`/`strh` are ARMv4), no long multiply (`umull`... are ARMv3M; 200
-  words that decode as them in `launchme` are data). Conditional execution
-  on every instruction, the barrel shifter with its carry out, `ldm`/`stm`
-  with writeback, `swp` (none in `launchme`), `mrs`/`msr` (7 decoded, to be
-  checked as code or data).
-* **Unaligned `ldr`** rotates the word on ARMv3; `ldrb`/`strb` are plain.
-  The emitter rotates only where the address is not provably aligned (a
-  `ldr` off `sp`, `fp`, or a literal is aligned).
-* **APCS-3/32 with frame pointers and stack checking**: `mov ip, sp;
-  stmfd sp!, {..., fp, ip, lr, pc}; sub fp, ip, #4; cmp sp, sl; bllt
-  __rt_stkovf`, returns by `ldmdb fp, {..., fp, sp, pc}` or `mov pc, lr`.
-* **One image linked at 0** with 4,930 relocations. The runtime loads it
-  at 0 in the 3DO's own address space, so no relocation is applied and
-  every constant in the data means what it meant on the console.
+* **ARM60**: ARMv3, 32-bit mode, big-endian, no Thumb, no halfword loads,
+  no long multiply. Conditional execution on every instruction, the
+  barrel shifter with its carry out, `ldm`/`stm` with writeback, `msr` on
+  the flags.
+* **APCS-3/32 with frame pointers and stack checking**, from Norcroft C,
+  plus hand-written routines that take liberties the compiler never does:
+  the routines at 0x39148 and 0x39400 load flags from data with
+  `msr cpsr_f`, and the first uses `sp` as a plain register; 0x41fd8 and 0x42120 park their return
+  address in a word of their own; 0x445d8 dispatches through the handler
+  word before an object.
+* **One image linked at 0** with 4,930 relocations. The runtime loads it at
+  0 in the 3DO's own address space, so no relocation is applied and every
+  constant in the data means what it meant on the console.
 
-## Discovery
+## The pieces (all in `3dokit/`)
 
-From `3dokit.arm.Image`, `3dokit.aif` and `3dokit.portfolio`:
+| | |
+|---|---|
+| `arm60` | the instruction set, ARMv3 exactly (session 2) |
+| `armemu` | the interpreter: the reference for every rule below. 8 known-answer tests of what the ARM60 does and an ARMv5 does not, and random instructions against unicorn's ARM926 (27,819 agree) |
+| `recomp.discover` | functions, code and data, switches, indirect transfers (session 2; session 3 taught it the parked-lr return) |
+| `recomp.emit` | an instruction as C++, a function as a C++ function |
+| `python -m 3dokit.recomp` | a module per program: `p_<name>_NNN.cpp`, the table of entries, `modules.cpp`, `CMakeLists.txt`, `report.txt` |
+| `recomp.selftest` | the interpreter records vectors, the C++ replays them |
+| `runtime/arm60.h` | the CPU, memory, the shifter and the flags, as C++ |
+| `runtime/arm_core.cpp` | guest memory, the active module, dispatch, the return check |
+| `runtime/arm_stub.cpp` | no OS: every SWI and every call outside the program stops |
+| `runtime/arm_selftest.cpp` | the replay |
 
-1. **Function starts**: APCS prologues, `bl` targets, the compiler's
-   embedded names (292), the relocation list's words that point into code
-   (the 45 targets of the pointer tables), callbacks handed to the OS
-   (`CreateThread`'s entry, `SetFunction`'s function), and the AIF entry.
-2. **Code vs data in the read-only area.** The compiler parks literal
-   pools, strings and `const` tables in the code; the linker puts the
-   libraries' read-only data after the code. A function's body is what
-   control flow reaches from its start (`arm.Image.reached` without
-   orphans), stopping at returns and unconditional branches; what is not
-   reached is data. The `svcne #0` "functions" at 0x39548, 0x4437c and
-   0x44408 are the warning: a `blne` decoded from data must not make a
-   function, so a `bl` target counts only when the `bl` itself is reached.
-3. **Switches**: `cmp rN, #n; addls pc, pc, rN, lsl #2; b default; b
-   case0; ...; b case(n)` -- 17 of them; the table is the n+1 branches after
-   the `b default`.
-4. **Indirect jumps**: `mov pc, lr` and `ldm ..., pc` are returns;
-   `ldr pc, [rB, #-slot]` with `rB` loaded from a folio's global is an OS
-   call; any other `ldr pc`/`mov pc, rN` is a dispatch through the table of
-   all function starts, which faults loudly on a miss.
-5. **Checked against Ghidra** (`ghidra/ExportFuncs.java`, as saturnkit's
-   and xboxkit's) and against the embedded names: every named function
-   must be found, with the size the next name implies.
+## The ARM60's rules, as both sides follow them
+
+* **An unaligned `ldr`** reads the aligned word and rotates it right by 8 x
+  address[1:0]; big-endian, offsets 0 and 2 leave the addressed byte in
+  bits 31-24, 1 and 3 in bits 15-8. `str`, `ldm`, `stm` ignore address[1:0].
+  The C++ checks the alignment at run time (`ldw`); the branch is cheap and
+  nothing has to prove alignment.
+* **`pc` as an operand** is the address + 8, + 12 under a register shift;
+  `str pc` and `stm {..., pc}` store + 12. The APCS prologue stores it.
+* **`ldm` with the base in the list** and writeback keeps the loaded value;
+  **`stm`** stores the base's original value when it is the lowest
+  register, the written-back one otherwise.
+* **`mul` with S** sets N and Z and leaves C and V (the datasheet's C is
+  "meaningless": both sides leave it).
+* **`msr cpsr_f`** writes the flags; **`mrs`** reads them over user mode.
+* What user mode leaves unpredictable (an S on a write to pc, `ldm ^`,
+  SPSR, writeback to pc, a load into the base it writes back) is refused by
+  both: nothing in nine programs' reached code needs it.
 
 ## Emission
 
-* A CPU struct: `r[16]`, the flags N Z C V as separate bytes, `sl`/`fp`/`sp`
-  as registers like any other. Memory is one 4 MB host array mirroring the
-  3DO's map (2 MB DRAM at 0, 1 MB VRAM at 0x200000), big-endian; loads and
-  stores byte-swap, with a bounds check in debug builds.
-* **One C++ function per guest function**, `void f_0001234(Cpu&)`; basic
-  blocks as labels, branches as `goto`, conditional instructions as `if`
-  on the flags; flags computed only where a later instruction reads them
-  before they are written again (a per-block liveness pass).
-* **Calls**: `bl f` is `f(cpu)` with `lr` set to the return address (the
-  code reads `lr` in the prologue's `stmfd`), and the return is a C++
-  return. `ldm ..., pc` and `mov pc, lr` return; a function that returns to
-  an `lr` other than its caller's (setjmp/longjmp, the startup's
-  hand-over to `main`) is handled by checking `pc` after each call against
-  the expected return address and unwinding if it differs.
-* **OS boundary**: `swi n` calls `os_swi(cpu, n)`; a load of `pc` from a
-  folio's table lands, through the fake folio tables in guest memory, on
-  an address the dispatcher maps to `os_slot(cpu, folio, slot)`. Unnamed
-  or unimplemented numbers stop with their name and call site.
-* **Output**: `build/recomp/p_<name>_NNN.cpp` split by size, `funcs.cpp`
-  (the address table), a generated `CMakeLists.txt` including
-  `3dokit/runtime/runtime.cmake`, and `report.txt`.
+* **The CPU** is `ArmCpu`: `r[16]`, the flags N Z C V as four words, `pc`
+  (where the last return went) and a poll budget. Memory is one 3 MB host
+  array (DRAM at 0, VRAM at 0x200000), big-endian; anything outside goes to
+  `arm_io_*`.
+* **One C++ function per guest function**, `void f_XXXXXXXX(ArmCpu&)`, in
+  namespace `p_launchme`; every instruction in address order in its own
+  block, a label where something branches, a `goto` past a literal pool;
+  a conditional instruction is an `if` on the flags. Every flag an
+  instruction sets is computed (no liveness pass yet: clang removes much of
+  it).
+* **Calls**: `bl f` sets lr and calls `f_...`; the callee's return stores
+  where it went in `c.pc` and returns, and the caller checks it is the word
+  after the call (`ARM_RET`). A `b` to another function's entry is a tail
+  call. `mov pc, lr`, `ldm ..., pc`, `ldr pc, [sp], #4` and the parked-lr
+  `ldr pc` are returns.
+* **The switch** is a C++ `switch` over its `b` table. Any other write to
+  pc after `mov lr, pc` is a call through `arm_call` (a lookup in the
+  entries); otherwise a jump through it, as a tail.
+* **The OS**: `swi n` is `arm_swi(c, n)`; a folio vector is a call or tail
+  jump through `arm_call` to whatever the folio's table holds in guest
+  memory, which the runtime will make an address it maps to native code.
+* **Safe points** (`ARM_POLL`) at backward branches and before calls.
+* After `bne x; beq y` with the flags unchanged nothing runs on; the one
+  place in `launchme` (0x4cf8, in the byte-copy routine at 0x4ce0) emits a fault
+  there rather than a call.
 
-## Self-test
+`report.txt` for `launchme`: 553 functions, 43,805 instructions (22 words
+shared by two functions), 1,831 calls, 729 returns, 259 SWIs, 16 switches,
+11 indirect calls, 34 indirect jumps (32 of them folio vectors), and no
+static target that is not an entry. 8 C++ files, built in about 6 seconds.
 
-An ARM60 interpreter in Python (`3dokit.armemu`, as `saturnkit.sh2emu`):
-for every function, random registers and a random memory window are run
-through the interpreter and through the recompiled function (calls and OS
-calls stubbed to record their arguments), and the registers, flags and
-memory compared. It doubles as the reference for the barrel shifter and
-the flags.
+## The self-test
 
-## Order of work
+* **The instruction test** (`--optest`): a synthetic AIF image of 891
+  functions, every data-processing operation with every operand2 form
+  (immediates rotated and not, every immediate shift at its edges, every
+  register shift, pc read at + 8 and + 12), the multiplies, single and
+  block transfers in every addressing mode with unaligned words, `swp`,
+  `msr`, `mrs`, each under a random condition, and sequences for the
+  control flow (branches both ways, a loop, `bl` with an APCS frame, a
+  conditional `bl` and return, a tail call, a call through a register,
+  the switch, flags loaded by `msr`, a 64-bit add). 10,580 vectors, 0
+  failures. Two faults injected by hand into the generated C++ (`sbc`'s
+  borrow, the rotation of an unaligned `ldr`) failed hundreds of vectors
+  and 77.
+* **The game's functions** (`--auto`): those that return on random states
+  without an OS call, without a fault, and without writing to the
+  program's code -- 138 of 553, 35 of them with pointer arguments:
+  `Arctan`, `Distance`, `Random`, `SortByD`, `CarCollision`,
+  `NSquaredCheck`, `DivideRoadEdges`, the division routine at 0x160,
+  the outcode routine at 0x41fd8... 2,083 vectors, 0 failures; under two other seeds,
+  5,730 more.
+* **Eight other programs** (`Orion`, Immercenary's six, OMF2097's
+  `LaunchMe`) recompile with nothing refused and replay 1,016 functions,
+  15,722 vectors, with 0 failures: the kit is not tuned to this game.
 
-1. `recomp.discover` with its report and the Ghidra comparison.
-2. `armemu` with tests of its own (shifter, flags, ldm/stm, the unaligned
-   rotate).
-3. `recomp.emit` for one function, then all; the self-test.
-4. The runtime skeleton (phase 4 of `06-attack-plan.md`) links it.
+One finding on the way: a vector recorded after a function had written
+into the code (on random pointers) ran changed code in the interpreter,
+which the C++ cannot do. The recorder now refuses writes to code words.
+
+## The indirect transfers, all eight
+
+| site | in | what it is | emitted as |
+|---|---|---|---|
+| 0xf3b0 | `SpliceInOneObject` | `mov lr, pc; ldr pc, [r4, #0x1c]`: an object's handler | call through `arm_call` |
+| 0x19b68 | `DoEnemyAi` | `ldmdb fp, {r5, fp, sp, lr}` then `ldr pc, [r1, r0, lsl #2]`: the frame undone, a tail jump through the drivers' table at 0x5cfb0 (Fang, Druger, TasmanTwix, MaxAmillion, Klaw, Rocker, three empty slots, Drone: all relocated entries) | tail jump through `arm_call` |
+| 0x37694 | 0x37668, called by `main` | `mov lr, pc; ldr pc, [r4, #0x104]` | call through `arm_call` |
+| 0x41fec, 0x4203c, 0x42068 | 0x41fd8 | `ldr pc, [lr]` with lr pointed at 0x41fd4, where the routine stored its lr on entry | returns |
+| 0x42328 | 0x42120 | `ldr pc, [ip]`, ip = 0x42118, where it stored its lr | return |
+| 0x4495c | 0x445d8 | `mov pc, r3`, r3 the word before an object: its handler. The 10 relocated words that point into this routine (0x5823c...) all point at its start | tail jump through `arm_call` |
+
+## What is left
+
+* **The OS** (phase 4 of `06-attack-plan.md`): `arm_stub` stops at the
+  first SWI; Portfolio at the folio boundary is the next layer, with the
+  folio tables as structures in guest memory.
+* **Speed**: the flags' liveness, literal pools folded into constants.
+* **Returns that are not to their call** (a longjmp, the startup's
+  hand-over): `ARM_RET` stops on them; none is met yet.
+* **Ghidra's function list** against discovery's (`--against`): not done;
+  the self-test and the nine programs are the stronger check now.
