@@ -253,3 +253,63 @@ its tags against those defaults, allocates the bitmaps' VRAM from the
 caller's own lists (`MEMTYPE_VRAM|MEMTYPE_CEL`, page-rounded and
 `MEMTYPE_STARTPAGE` with the SPORT bits) and hands the rest to SWI
 0x20032.
+
+## The screens, read in GRAPHIX
+
+What `cnbOpenGraphics` (0x10f8) asks for and what the 1993 folio does
+with it, read in `GRAPHIX` and now done the same way by the runtime
+(`3dokit/runtime/pf_graphics.cpp`), each step checked by replaying it on
+the folio's own code (`pfboot --snap`, `python -m 3dokit.pfcheck
+--graphix`: every result and every byte of guest memory the folio's).
+
+* **The folio's own node sizes** are in its node database (0x5430, the
+  `CREATEFOLIO_TAG_NODEDATABASE` of its tags at 0x5444): ScreenGroup 0x54,
+  Screen 0x7c, Bitmap 0x84, VDL 0x34 bytes. The 1993 ScreenGroup ends at
+  `sg_Add_SG_Called` (no `sg_ScreenList`) and the VDL at `vdl_DataSize`;
+  every field up to there is where the 1.2 header puts it.
+* **Its system VDLs** (0x41b4, right after the VIRS and zero pages when
+  the folio starts): two blocks of the OS's VRAM (`VRAM|DMA`, 0x180 and
+  0xa0 bytes) hold forced-first, pre-display, post-display, a full entry
+  over the VIRS page, and the blank VDL; the chain runs forced-first ->
+  the full entry -> pre-display -> the blank VDL (or later the screens')
+  -> post-display -> forced-first. `gf_VDLDisplayLink` (+0xb4) is the
+  word of pre-display that points at what is shown. Each entry's header
+  ends with 32 colour words, entry i being `i << 24` and the grey `i *
+  255 / 31` (the blank VDL's are black). Forced-first is then written to
+  the display hardware (0x3300580).
+* **`CreateScreenGroup`, the user half** (0x3e44): tags 1 to 11 over the
+  defaults (240 lines displayed and per screen, 2 screens, 1 bitmap,
+  VDL type 4); checks (display height 1..240, screen height at least
+  that, VDL pointers only with lengths, more than one bitmap only with
+  heights); the array of buffer pointers from the caller's lists (flags
+  0, DRAM) and each buffer `width * 2 * height` bytes of `VRAM|CEL`,
+  page-rounded and `STARTPAGE|` the SPORT bits when there are any. The
+  game's two buffers: 153,600 bytes each, 75 VRAM pages, bank bits
+  0x50000000.
+* **SWI 50, the supervisor half** (0x27a0): the group (`sg_ScreenHeight`,
+  `sg_DisplayHeight`, `sg_Add_SG_Called` 0); it sets the bitmap count to
+  1 whatever was asked. Per screen: the Screen item, its VDL (type 4,
+  VDLTYPE_SIMPLE: one 38-word entry per bitmap from the OS's VRAM, a
+  header of 240 lines, the bitmap's buffer twice, the link, a display
+  control word chosen by the width -- 320, 384, 512, 640 or 1024 -- and
+  the grey ramp; the last entry links to post-display; type 1 builds a
+  longer per-line VDL, types 2, 3 and 5 are `GRAFERR_NOTYET`), the VDL
+  item, `InitList(scr_BitmapList, "ScreenBitmapList")`, and its Bitmap:
+  width, height, clip size, `bm_WatchDogCtr` 62,500, `bm_CEControl`
+  0xe1500000, `REGCTL0` from an 18-entry table of widths (320 is 0x1414),
+  `REGCTL1` the clip size, `REGCTL2`/`3` the buffer, the vertical offset.
+  The bitmap goes into `scr_TempBitmap` and onto no list. The buffer must
+  be writable by the task: the 1993 kernel's slot -168 (0x1617c, which
+  the later headers call `IsMemReadable`) takes the task first and
+  checks each page in its MemList's `meml_WriteBits`.
+* **`AddScreenGroup`** (SWI 17) sets `sg_Add_SG_Called` once;
+  **`Enable`/`DisableHAVG`** and **`VAVG`** (SWIs 5 to 8) set or clear
+  bit 4 or 8 of the display control word of the screen VDL's first entry
+  (both already set by the type-4 VDL). All of them first `CheckItem` the
+  item (Kernel -64: `LookupItem`, then subsystem and type) and require
+  the caller to own it.
+* **Then the SPORT device**: lib3DO's opener (0x2d324) finds the device
+  `SPORT` (`MKNODEID(1, 15)`), opens it, and creates two IOReqs for it
+  (`CreateSizedItem(MKNODEID(1, 14), {CREATEIOREQ_TAG_DEVICE, device})`),
+  kept at 0x6495c and 0x64960, the device at 0x64964. Without it
+  `InitHardware` fails (`InitHardare failed`) and `main` tears down.

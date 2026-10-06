@@ -87,3 +87,20 @@ guest memory the kernel's; two faults put in by hand are caught.
 Checked the same way (battery from 93c2c33 and from the kit: 51 outputs
 byte-identical; self-test 0 failures); Immercenary's `p` runs to its 20th
 call (`SendIO`), `launchme` still stops at `CreateScreenGroup`.
+
+## Session 5
+
+| 3dokit | What |
+|---|---|
+| 332b0f1 | `runtime/pf_graphics`: the folio's system VDLs and its screen groups (`CreateScreenGroup`, `AddScreenGroup`, `Enable`/`DisableHAVG`/`VAVG`) as the 1993 GRAPHIX makes them; the kernel's `CheckItem` and its write check; `pfboot --snap` and `pfcheck --graphix`, which replays one Graphics call on the folio's own code; `aif.relocated` |
+
+Checked with the battery on the nine programs and the three trees, run
+from the submodule's 5723f89 and from the new kit: all 51 outputs
+byte-identical. The self-test (1,275 functions, 18,393 vectors) replays
+with 0 failures; `pfcheck`'s six runs of 4,000 memory calls from the new
+boot are clean; Immercenary's `p` and OMF2097's `LaunchMe` stop where
+they did (their 20th and 2nd calls), with the same traces. The new check
+on the folio's own code: its start of the system VDLs and `launchme`'s
+ten Graphics calls up to `SPORT` agree with the runtime byte for byte
+(its first run caught a wrong constant in the runtime's full VDL entry),
+and two faults put in by hand are caught.
