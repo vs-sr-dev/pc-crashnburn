@@ -94,7 +94,11 @@ python -m 3dokit.aif --decompress build/disc/System/Kernel/os_code os_code.bin  
 
 ## Questions for the user
 
-* On the console (when convenient): the same start as Phoenix's?
+* On the console the start is Phoenix's, except that the logo goes straight
+  to the intro movie, without the game/Preview choice (`08-oracle.md`).
+  What decides it is the game's (`DoLogoScreen`, 0x20ef0): which console
+  model it is, and whether it holds Crash 'n Burn saves in NVRAM, may say
+  why.
 
 ## Later, not next
 

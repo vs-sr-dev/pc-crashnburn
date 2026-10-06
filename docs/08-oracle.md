@@ -24,6 +24,19 @@ emulator does differently is the emulator's.
    Crystal Dynamics", "Space Combat at 24 Frames per Second"), which loops
    with the scripts (`runme1` runs `/ex`, `runme2` runs `/Orion`).
 
+## The console (the user's 3DO, with the same disc)
+
+The same as Phoenix (session 5, the user's look), with one difference: the
+Crystal Dynamics logo animation goes **straight to the game's introductory
+movie**, and the choice between Crash 'n Burn and the Preview never
+appears. The choice is the game's own: `DoLogoScreen` (0x20ef0), one of
+the screens `GlueShell`'s switch runs (0x1068), a dialog whose answer 1
+starts `DoPreviews` and whose 0 or 0x7f goes on to the game. What makes
+the console skip it is not known yet; it is something the game reads
+(the pad, NVRAM, a timer, the hardware or OS it finds), since the disc and
+the scripts are the same. The runtime will reach that screen and its
+inputs by its own trace.
+
 ## Opera (libretro), in RetroArch: does not reach the game
 
 `tools/oracle.py` drives it (screenshots on a timetable, buttons over the
