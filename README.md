@@ -84,7 +84,9 @@ reference, the C++ emitter, and a self-test: `launchme` recompiles to C++
 (553 functions, 43,805 instructions), builds, and agrees with the
 interpreter on an instruction test of 891 functions and on the 138 game
 functions that run without the OS, with 0 failures
-(`docs/09-recompiler.md`). Next is the OS.
+(`docs/09-recompiler.md`). The OS is begun: on 3dokit's Portfolio frame
+(`pfboot`) the game boots, prints its banner, and stops at the first
+call not yet implemented.
 
 ## Documentation
 

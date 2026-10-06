@@ -144,9 +144,11 @@ which the C++ cannot do. The recorder now refuses writes to code words.
 
 ## What is left
 
-* **The OS** (phase 4 of `06-attack-plan.md`): `arm_stub` stops at the
-  first SWI; Portfolio at the folio boundary is the next layer, with the
-  folio tables as structures in guest memory.
+* **The OS** (phase 4 of `06-attack-plan.md`): begun at the end of the
+  session as a frame (`3dokit/runtime/pf*`, the `pfboot` target): the boot,
+  the OS's memory above VRAM, folio tables of trap addresses, every SWI
+  and slot dispatched and traced by its SDK name. `kprintf` and the
+  startup's slot -120 are its only functions so far.
 * **Speed**: the flags' liveness, literal pools folded into constants.
 * **Returns that are not to their call** (a longjmp, the startup's
   hand-over): `ARM_RET` stops on them; none is met yet.

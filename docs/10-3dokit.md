@@ -41,14 +41,21 @@ reading in Immercenary's notes: SWI 0x10011 is `ReadHardwareRandomNumber`.
 | 87356c5 | `recomp.emit`, `python -m 3dokit.recomp`, `recomp.selftest`; the C++ runtime for recompiled code (`runtime/arm60.h`, `arm_core`, `arm_stub`, `arm_selftest`, `runtime.cmake`) |
 | d15a333 | `recomp.discover`: a load of pc from the word a function parked its lr in is a return (Crash 'n Burn's 0x41fd8 and 0x42120); the self-test refuses writes to code words only |
 | 627d87e | README: the other programs' self-test measured again |
+| fce69b2 | `runtime/pf*`: Portfolio's frame (the boot, the OS's memory, folio tables of traps, SWI and slot dispatch by the SDK's names, the trace) and `pfboot`; `arm_swi` takes the swi's address |
 
 Checked on Immercenary's six programs (`launchme`, `p`, `p1e`,
 `SpeechSubroutine`, `CinepakSubroutine`, `StorageTuner`), OMF2097's
 `LaunchMe` and Crash 'n Burn's `launchme` and `Orion`, before and after
-each commit (`aif --scan` on the three trees, `dsp --verify`, `portfolio
+the two commits that change what it runs, 318214d and d15a333 (`aif --scan` on the three trees, `dsp --verify`, `portfolio
 --sites`, `arm60 --check`, `recomp.discover --report` and its function
 list, `arm --names`): byte-identical, except `arm60 --check`'s count of
 refused words (data that decoded as a `mul` with Rn set: 1 to 292 per
 program) and `launchme`'s discovery report (pointer jumps 5 to 1). Every
 function of the nine recompiles with nothing refused; the eight besides
 `launchme` replay 1,016 functions, 15,722 vectors, with 0 failures.
+
+After fce69b2 the instruction test, `launchme`'s 138 functions and the
+eight other programs' 1,016 replay with 0 failures, and two of them boot
+on `pfboot` too (Immercenary's `p` prints `GAME: Entering main game
+task.`; OMF2097's `LaunchMe` reaches `AllocMemFromMemLists`). The other
+commits touch no module the regression battery runs.

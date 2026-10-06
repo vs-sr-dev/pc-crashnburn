@@ -39,3 +39,29 @@
   instruction set decoded exactly, and `3dokit.recomp.discover`: 553
   functions, 16 switches, 8 indirect transfers outside the OS's, 17 dead
   functions, code past `code_end` in the read-write area.
+
+## Session 3 (2026-10-06, the same day) — the translator whole, the OS begun
+
+* **The interpreter** (`3dokit.armemu`): ARMv3 in user mode with the
+  ARM60's own rules (the unaligned `ldr`'s rotation, `pc` + 12 under a
+  register shift and when stored, `ldm`/`stm` with the base in the list),
+  8 known-answer tests, and 27,819 random instructions that agree with
+  unicorn's ARM926. `Arctan` and `Distance` run in it as the game's code.
+* **The emitter and the self-test** (`09-recompiler.md`): `launchme`
+  recompiles whole, 553 functions and 43,805 instructions with nothing
+  refused, and builds in seconds. The interpreter records and the C++
+  replays: an instruction test of 891 functions (10,580 vectors) and the
+  138 game functions that run without the OS (2,083 vectors), 0 failures;
+  two faults injected by hand are caught. Eight programs of the kit's
+  other two discs recompile and replay too (1,016 functions, 0 failures).
+* **The eight indirect transfers**, read to the end: two pointer calls, the
+  drivers' table as a tail jump, the 3D routine's handler word, and four
+  `ldr pc` that are **returns** through an `lr` the routine parked in a word
+  of its own -- session 2 had read them as tables after the call
+  (`03-executables.md` corrected). Discovery now finds them.
+* **Phase 4 begins** (`3dokit/runtime/pf*`, `pfboot`): the program boots
+  on a Portfolio frame, the folio tables hold traps, every SWI and slot is
+  traced by its SDK name. `launchme` calls the startup's Kernel slot -120,
+  prints `...cnb...` with `kprintf`, and stops at `ChangeDirectory("$boot")`,
+  the first call not implemented; after it come `FindItem` for a folio,
+  `OpenItem`, `LookupItem`.

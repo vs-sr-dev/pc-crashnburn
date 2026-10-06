@@ -119,8 +119,8 @@ start (`08-oracle.md`). Emulators are read, never copied.
 | # | Phase | Done when |
 |---|---|---|
 | 1 | Survey: disc, code, OS surface, the kit split out | **session 1** |
-| 2 | Name the OS surface: every SWI and slot of `launchme` against the SDK's headers and the oracle | 35 SWIs and 75+38 slots named, in `portfolio`'s tables |
-| 3 | Translator: discovery, emission, ARM60 interpreter, self-test | `launchme` recompiles, links against a stub runtime, self-test clean |
+| 2 | Name the OS surface: every SWI and slot of `launchme` against the SDK's headers and the oracle | 35 SWIs and 75+38 slots named, in `portfolio`'s tables -- **session 2** |
+| 3 | Translator: discovery, emission, ARM60 interpreter, self-test | `launchme` recompiles, links against a stub runtime, self-test clean -- **session 3** |
 | 4 | Runtime skeleton: memory, kernel (items, signals, messages, tasks as cooperative fibers), File folio, CD device, a frame loop | `main` runs to the first `DisplayScreen`, logging the OS calls in the oracle's order |
 | 5 | Graphics: screen groups, VDLs, the CEL engine in software at 320x240 | the logos and menus as the oracle's, pixel for pixel |
 | 6 | Audio: the four instruments, the module player's voices, SFX | the menu music and effects as the oracle's |
