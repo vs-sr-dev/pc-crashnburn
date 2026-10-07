@@ -107,9 +107,9 @@ movie's end takes about a minute.
 
 ## Questions for the user
 
-* A Phoenix screenshot or two of the logo movie (its last frame, the logo
-  on black, is the easiest to match) would let the runtime's fields be set
-  beside the console's picture, colours included.
+* None open. (The logo's last frame matched Phoenix's screenshot; the
+  choice screen's screenshot -- the buttons CRASH'N BURN and PREVIEWS over
+  that frame -- is the reference for the dialog, `08-oracle.md`.)
 
 ## Later, not next
 
