@@ -53,9 +53,10 @@ yet. The build's `TDK_RUNTIME` is the kit's working tree.
    do in the runtime what it does at its message boundary. The game's
    request: `LC_FocusListener`, triggers `ControlButtonUpdate`,
    `MouseUpdate`, `MouseMoved`, 0x6c bytes at 0x6a4c4.
-3. **A pad for `pfboot`**: a schedule of buttons on the command line (a
-   held button, as the console's own start sequence in `08-oracle.md`
-   uses), until there is a window. Then: what the dialog does with A
+3. **A pad for `pfboot`**: a schedule of buttons on the command line until
+   there is a window -- a burst of regular presses, each pressed and then
+   released (the user's choice, session 10: a held button might leave the
+   game waiting for the release). Then: what the dialog does with A
    (`DialogInput` 0x1f148, `DoLogoScreen` 0x20ef0) -- the game's intro
    movie, then the Rally / Tournament / Options menu, by the code.
 
@@ -121,8 +122,9 @@ yet. The build's `TDK_RUNTIME` is the kit's working tree.
 
 ## Questions for the user
 
-* How `pfboot` should get its pad for now: a schedule of buttons on the
-  command line (proposed), or straight away a window with the keyboard?
+* None open. (The pad, answered after session 10: a command-line
+  schedule now, a burst of regular presses and releases rather than a
+  held button; the window and keyboard later, with the display.)
 
 ## Later, not next
 
