@@ -253,3 +253,20 @@ to its 234th call, `p`, `LaunchMe`) are session 9's byte for byte;
 self-test 0 failures over 1,029 functions; the six memory runs and the
 sixteen Graphics snapshots pass. `launchme` ends its movie and draws its
 choice dialog for ever (no pad: no event broker).
+
+| 3dokit | What |
+|---|---|
+| 1083701 | `runtime/pf_msg` (new): MsgPort and Message items, `SendMsg`, `ReplyMsg`, `GetMsg`, `GetThisMsg`, their deletion, as os_code v0.16; ports of the OS's own. `runtime/pf_event` (new): the event broker at its message boundary, the Control Pad's frames. `pfboot --pad` |
+| 87b1d60 | README |
+
+Only the runtime's C++ changed (no battery). `LaunchMe`'s trace is
+byte-identical. `launchme`'s to its 234th call differs only by the item
+numbers (one more: the broker's port, made at the boot) and the OS's
+memory addresses after it (the port's 0x50 bytes and name). `p` now finds
+the broker, configures itself as an observer, and stops at the File
+folio's `GetDirectory` (before: "unable to open the event broker", then
+its timer). Self-test 0 failures over 1,029 functions; the six memory runs
+pass; the sixteen Graphics snapshots pass, the five after the 229th call
+renumbered by the input library's eleven new calls (615, 616, 634, 2090,
+2093 are now 626, 627, 645, 2101, 2104). With `--pad a@1300x1`
+`launchme` plays its intro movie and reaches the Select Game menu.

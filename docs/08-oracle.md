@@ -109,3 +109,10 @@ the lit button's face (101 pixels) and (7, 8, 17) against (8, 8, 16) on the
 dimmed one's (60 pixels): the pixel processor's two modes -- 1.5 times, and
 17/32 -- come out as Phoenix draws them. The comparison script
 (`cmp_dialog.py`) stays in the session's scratchpad.
+
+## The Select Game menu (session 11)
+
+With the pad (`pfboot --pad a@1300x1`), the runtime's run goes on past the
+dialog to the intro movie and the Select Game menu (field 4478: Rally,
+Tournament, Options). There is no Phoenix screenshot of it yet; the user,
+looking at the field, confirmed it is the real game's menu.

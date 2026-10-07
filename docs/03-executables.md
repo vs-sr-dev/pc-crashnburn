@@ -926,6 +926,86 @@ the game's 229th call, looks for the event broker's message port
 button. With the port there it would make a reply port (`CreateMsgPort`)
 and a message (`CreateMsg`), then `SendMsg` the broker an `EB_Configure`
 request (event.h's `ConfigurationRequest`, 0x6c bytes at 0x6a4c4: category
-`LC_FocusListener`, triggers `ControlButtonUpdate`, `MouseUpdate` and
+`LC_Observer` -- the game calls `InitEventUtility(1, 0, 0)`, and a third
+argument of 0 makes the library ask for an observer, not a focus listener
+as first read here --, triggers `ControlButtonUpdate`, `MouseUpdate` and
 `MouseMoved`). On the console the broker is a task of its own, started by
 the disc's `startopera`: `System/Tasks/eventbroker` (16,016 bytes).
+
+## The pad: the kernel's messages and the event broker (session 11)
+
+**Messages, read in os_code.** The 1993 kernel's SWI table gives
+`GetThisMsg` (15) at 0x18b34, `SendMsg` (16) 0x184d0, `ReplyMsg` (18)
+0x186b8, `GetMsg` (19) 0x18bd4; slot 40 (`WaitPort` in later SDKs) is
+empty -- the game's library waits on the port's signal itself. A
+`MsgPort` is 0x50 bytes, its size locked by the kernel's node table (a
+size given to `CreateSizedItem` is NOMEM); `CREATEPORT_TAG_SIGNAL` is
+taken as given, and without it the kernel allocates one of the creator's
+signals and marks the port `MSGPORT_SIGNAL_ALLOCATED` (0x18418). A
+`Message` has no size in the node table, so `CreateSizedItem` hands its
+creation routine (0x1898c) no node (-1) -- and its own `ITEMNODE_NOTREADY`
+marking then lands on byte 0x16 of the program's image, the kernel's slip
+-- and the routine makes 0x40 bytes plus `CREATEMSG_TAG_DATA_SIZE`'s
+buffer; a reply port the creator owns is required. Word +0x34 of a
+message is who holds it: the port it is queued on, else a task; `SendMsg`
+wants the caller to hold it. The send under `SendMsg` and `ReplyMsg`
+(0x185fc) copies a pass-by-value message's data into its buffer, queues it
+by priority (`InsertNodeFromTail`) and signals the port's owner with the
+port's signal (or `msg_SigItem`). `ReplyMsg` asks nobody who holds the
+message. Deleting a port replies `BADITEM` to every message sent to it and
+frees its signal from its owner. All of it is
+`3dokit/runtime/pf_msg.cpp`; the errors are operror.h's (`NoSigs`,
+`MsgSent`, `NoReplyPort`, `BadSize`, `ReplyPortNeeded`).
+
+**The event broker**, `System/Tasks/eventbroker` ("Event Broker as of Sat
+Aug 14 16:50:03 PDT 1993"; compressed, 20,540 bytes unpacked, no embedded
+names), reads the Control Port through a device "controlport"
+(`CONTROLPORTCMD_READWRITE` each field) and decodes the port's bits with
+driverlets by pod ID (0x80, 0xa0, 0xc0 the Control Pad at 0x2ad8, 0x49 the
+mouse, 0x56 the glasses, 0xfe the splitter, and `$DRIVERS/CPORT%x.ROM`
+for others). The device's driver is on neither the disc (its
+`System/Devices` and `Drivers` hold only `junk`), nor `os_code` or
+`misc_code`, nor the ROM's Operator (which has SPORT and the timer): only
+the brokers (the disc's and the ROM's own) name it. So the runtime
+(`3dokit/runtime/pf_event.cpp`, the user's choice) does what the broker
+does at its message boundary:
+
+* its port "eventbroker"; it runs at priority 199 (0x5e8), so it answers a
+  request at once and reports a field's events as the field comes in;
+* a request (0xe6c) needs a reply port and a word-aligned header of 4
+  bytes or more (else the broker's BADPTR, 0xf14cd009); `EB_Configure`
+  (0xff4) finds or makes the listener of the reply port (0x1458: at the
+  head of its list, at most 3 messages in transit), takes the category and
+  the trigger and capture masks, gives a new focus listener the focus, and
+  replies 0 -- with an `EB_ConfigureReply` header only to a pass-by-value
+  message. (A `cr_QueueMax` of 1 to 20 is stored as a word over the
+  listener's byte fields, 0x107c, which zeroes its queue: the runtime stops
+  on it.)
+* each field (0x23b0 on) a listener hears when its focus changed, or --
+  the focus holder and observers -- when its trigger mask meets the
+  field's events; the message is an `EB_EventRecord` (the header, the
+  frames, an empty frame), in one of the broker's own pass-by-value
+  messages (0x1570: reused when one comes back big enough, else made, in
+  16s). A full queue sends nothing and remembers it: the next record
+  starts with `EventQueueOverflow` and carries an Update whatever the mask.
+* the pad's driverlet: the buttons that went down, came up, and the state
+  as `ControlButtonPressed`, `Released` and `Update` when they changed,
+  `Arrived` every field; a frame is 0x20 bytes (0x14fc), the field as its
+  timestamp, pod 1, position 1, generic 1, the bits left-justified
+  (`ControlDown` 0x80000000 ... `ControlLeftShift` 0x00200000) -- the
+  pad's 16 bits shifted left by 19, past its ID.
+
+The game's library makes its port (126) and message, configures (call
+239), and reads the reply's `msg_Result` (call 402). `GetJoystick` polls
+every seven fields here. `pfboot --pad BUTTONS@FIELD[xN][/E]` schedules
+the pad (N presses every E fields, each held 6 fields).
+
+**What the game does with it.** With `--pad a@1300x1` the dialog reads
+the press (an Update with `ControlA`, then the release at field 1306),
+takes CRASH'N BURN, loads `CNB/Glue/FMVLegal.img`, plays the intro movie
+-- the explosion, "The Future 2044 A.D.", the track, the cars, the
+burning logo -- and at field 4478 shows the **Select Game** menu (Rally,
+Tournament, Options; `GlueBgnd.img`, `GameSelectScreen.3DO`), which the
+user confirms is the real game's. Left there it waits on the pad (300,000
+calls, no stop). A second A (field 4600) takes Rally: the **Select
+Character** screen at field 4642.

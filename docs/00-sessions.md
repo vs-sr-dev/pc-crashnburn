@@ -273,3 +273,28 @@
   ever. The game's input library found no event broker (`FindItem` of the
   MsgPort "eventbroker" at its 229th call) and its `GetControlPad` returns
   -1. Next: the kernel's messages and the broker.
+
+## Session 11 (2026-10-07) — the pad: messages, the event broker, the menu
+
+* **The kernel's messages**, read in os_code (`03-executables.md`): ports,
+  messages, `SendMsg`, `ReplyMsg`, `GetMsg`, `GetThisMsg`, their deletion
+  (`3dokit/runtime/pf_msg.cpp`).
+* **The event broker**: the disc's `System/Tasks/eventbroker` (August
+  1993) read; its Control Port driver is nowhere on the disc or in the
+  ROM's Operator, so -- the user's choice -- the runtime does what the
+  broker does at its message boundary (`pf_event.cpp`): the
+  "eventbroker" port, `EB_Configure`, listeners and focus, an
+  `EB_EventRecord` each field the pad changes.
+* **A pad for `pfboot`**: `--pad BUTTONS@FIELD[xN][/E]`, presses each
+  released after 6 fields.
+* **Correction**: the game's input library asks to be an observer
+  (`LC_Observer`), not a focus listener.
+* **The game goes on**: with A at field 1300 the dialog takes CRASH'N
+  BURN, the intro movie plays, and the Select Game menu appears at field
+  4478 -- the real game's, the user confirms. A second A takes Rally: the
+  Select Character screen.
+* **Checks**: `LaunchMe` byte for byte; `launchme` and `p` differ as
+  expected (the port's item; `p` now reaches `GetDirectory`); self-test, six
+  memory runs, sixteen Graphics snapshots (five renumbered).
+* **Where the run stops**: it does not; with two presses of A it reaches
+  Select Character (field 4642) within 400,000 calls.
