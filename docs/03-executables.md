@@ -682,8 +682,13 @@ same way by the runtime (`3dokit/runtime/pf_file.cpp`):
   eight letters `iamaduck` over and over, by the byte's place in its block
   -- every file that ends inside a block, on this disc (414 of 415) and on
   OMF2097's (1,495 of 1,497), but `rom_tags` and OMF2097's `BannerScreen`.
+  It is the Opera mastering tool's fill of unused space, phase-aligned to
+  each sector (`D:\Homebrew7do-platformnotes-doc`, and this disc's own
+  sector survey in `3do-crashnburn-doc/docs/04-every-sector.md`: 0.69 % of
+  its fill is in files' tails). Four discs of the five surveyed there have
+  it; Alone in the Dark has none, and its tails hold the master's memory.
   A stream's buffer holds those bytes after its last read; the runtime's
-  reads give them too.
+  reads give the fill -- right for this disc, not for every one.
 
 What the game does with it:
 

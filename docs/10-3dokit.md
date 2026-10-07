@@ -192,3 +192,7 @@ the same 36 calls. Immercenary's `p` now deletes its timer's IOReq (its
 351st call) and stops at its 352nd (`DetachSample`, not yet). `launchme`
 reads its fourteen sound effects and stops at its 240th call, the audio
 folio's `SetAudioItemInfo`.
+
+| 3dokit | What |
+|---|---|
+| 67e7693 | the `iamaduck` fill: a comment, after the earlier disc surveys (Alone in the Dark has none) |
