@@ -827,7 +827,7 @@ now does the same, `3dokit/runtime/pf_audio.cpp`):
   back to 0xc000 -- whatever fed it, and whether anything did.
 * **What the game does for its movie** (`SwapInDCSQXD`, 0x2bd0c): the
   voice-0 gains tweaked down to 0 in steps of 100, `DisconnectInstruments`
-  of voice 0's `sampler` from the mixer, its two knobs and the instrument
+  of voice 0's `varmono8` (item 0x3e) from the mixer, its two knobs and the instrument
   deleted, `dcsqxdhalfmono` allocated in its place (priority 100), its
   `Amplitude` grabbed and set to 0, and it connected to the mixer. Then
   (0x28e8) a sample over the 44,100-byte sound buffer at 0x2ba1cc: tags
