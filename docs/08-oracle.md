@@ -132,3 +132,8 @@ building, stripes, the cars ahead and alongside, the player's car and its
 exhaust are where Phoenix has them, and alike to the eye at six times;
 the shots are JPEGs of a scaled picture, so a one-pixel edge (the patent's
 rule against Opera's) cannot be told from them.
+
+The Rankout screen after the race (field 40,390 on: "RANKOUT: YOU FAILED
+TO PLACE. 3 CONTINUES REMAIN.", CONTINUE and QUIT) has no Phoenix shot; the
+user, looking at the fields, confirmed it is the real game's -- the chosen
+option flickers by design, CONTINUE by default.

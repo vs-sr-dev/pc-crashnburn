@@ -132,8 +132,9 @@ line about 40,300, Rankout 40,390.
 
 * Next: placing in a race by a scheduled pad, or the window with the
   keyboard so that you drive?
-* Does the Rankout screen look like the real game's (field 40,400 on, a
-  sheet in the session's scratchpad)?
+
+(The Rankout screen: the user confirmed it is the real game's; the chosen
+option flickers by design, CONTINUE by default.)
 
 ## Later, not next
 
