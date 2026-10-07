@@ -55,7 +55,9 @@ python -m 3dokit.arm build/disc/launchme -d 644 -n 60          # main
 python -m 3dokit.portfolio build/disc/launchme --sites
 
 # the recompiler: C++ for the whole program, and its self-test
-python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme --optest
+python -m 3dokit.recomp --out build/recomp --optest \
+  "launchme=build/disc/launchme+154b4,158fc,19530,19540,195bc,195dc,250f8,25abc,26780,26fec,27908,27cec,2f314,449a8,44fb0,44fcc,45058,450c8,45138,451fc,45564,45648"
+                                       # the seeds: entries only data reaches (docs/09)
 python -m 3dokit.recomp.selftest --image launchme=build/disc/launchme --auto        --out build/recomp/selftest/launchme.txt
 cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
 ninja -C build/recomp-build

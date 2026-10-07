@@ -8,7 +8,7 @@ rest, and `launchme` now recompiles whole, builds, and agrees with the
 interpreter on every function that can run without the OS.
 
 ```sh
-python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme --optest
+python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme+SEEDS --optest   # the seeds: below
 python -m 3dokit.recomp.selftest --image launchme=build/disc/launchme --auto \
        --out build/recomp/selftest/launchme.txt
 cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
@@ -137,10 +137,54 @@ which the C++ cannot do. The recorder now refuses writes to code words.
 |---|---|---|---|
 | 0xf3b0 | `SpliceInOneObject` | `mov lr, pc; ldr pc, [r4, #0x1c]`: an object's handler | call through `arm_call` |
 | 0x19b68 | `DoEnemyAi` | `ldmdb fp, {r5, fp, sp, lr}` then `ldr pc, [r1, r0, lsl #2]`: the frame undone, a tail jump through the drivers' table at 0x5cfb0 (Fang, Druger, TasmanTwix, MaxAmillion, Klaw, Rocker, three empty slots, Drone: all relocated entries) | tail jump through `arm_call` |
-| 0x37694 | 0x37668, called by `main` | `mov lr, pc; ldr pc, [r4, #0x104]` | call through `arm_call` |
+| 0x37694 | 0x37668, called by `main` | `mov lr, pc; ldr pc, [r4, #0x104]`: an object's state machine (seeds below) | call through `arm_call` |
 | 0x41fec, 0x4203c, 0x42068 | 0x41fd8 | `ldr pc, [lr]` with lr pointed at 0x41fd4, where the routine stored its lr on entry | returns |
 | 0x42328 | 0x42120 | `ldr pc, [ip]`, ip = 0x42118, where it stored its lr | return |
-| 0x4495c | 0x445d8 | `mov pc, r3`, r3 the word before an object: its handler. The 10 relocated words that point into this routine (0x5823c...) all point at its start | tail jump through `arm_call` |
+| 0x4495c | 0x445d8 | `mov pc, r3`, r3 the word before an object: its handler. The 10 relocated words that point into this routine (0x5823c...) all point at its start; the handlers are the routine's later entries (seeds below) | tail jump through `arm_call` |
+
+## Entries only data reaches: the seeds
+
+Discovery seeds a function from a relocated word only when the word points
+at an APCS prologue or an embedded name. Some of the game's code is reached
+from nothing else: leaf routines without a frame, whose address is a
+literal stored into an object or kept in a data structure. The runtime
+stops on the first call to one ("a call to an address that is no
+function's entry"); the port names them on the command line
+(`launchme=FILE+SEED,...`, `3dokit.recomp`), 22 of them, found in session
+12 on the way to the race:
+
+* **The objects' state machines**: eight three-word dispatchers, `ldr r0,
+  =table; ldr r1, [r4, #0x108]; ldr pc, [r0, r1, lsl #2]` -- the object's
+  state word indexes its kind's table of handlers -- at 0x154b4, 0x158fc,
+  0x19530, 0x250f8, 0x25abc, 0x26780, 0x27908, 0x27cec; a constructor
+  stores one in the object's word +0x104 (0x15414: `ldr r1, =0x154b4; str
+  r1, [r0, #0x104]`), and 0x37668 calls it each frame. One more +0x104
+  handler, 0x26fec, is not a dispatcher. The tables' handlers are named
+  functions but for 0x5ba94's three, frameless leaves: 0x19540, 0x195bc,
+  0x195dc.
+* **A callback**: 0x2f314, `mov r0, #0; mov pc, lr`, passed in r3 at
+  0x2e974 and 0x2eb2c.
+* **The models' handlers** in the hand-written 0x445d8: nine entries into
+  its unrolled run of faces, one step per bit of a face mask (`tst ip,
+  #bit; blne 0x444f8`), each kept in the word before a model's data
+  (0x45f54, 0x48c58, 0x4ddd4, 0x52764, 0x4b5bc, 0x5061c, 0x54b38, 0x562b8,
+  0x56670): 0x449a8, 0x44fb0, 0x44fcc, 0x45058, 0x450c8, 0x45138, 0x451fc,
+  0x45564, 0x45648.
+
+A scan of every relocated word and every literal loaded by reached code
+that points at an unreached word of the code range, with a trial descent
+from each, finds these; every other target whose descent runs cleanly is
+data of zeros and small numbers, which decode as `andeq` and run on for
+hundreds of words (the buffers at 0x37a58 on and 0x42894 on, the tables at
+0x31d2c and 0x376ac). A rule general enough to find the routines in the
+kit would take that data too, so the list stays the port's.
+
+```sh
+python -m 3dokit.recomp --out build/recomp --optest \
+  "launchme=build/disc/launchme+154b4,158fc,19530,19540,195bc,195dc,250f8,25abc,26780,26fec,27908,27cec,2f314,449a8,44fb0,44fcc,45058,450c8,45138,451fc,45564,45648"
+```
+
+575 functions with the 22 seeds, 553 without.
 
 ## What is left
 

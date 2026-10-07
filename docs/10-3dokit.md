@@ -270,3 +270,15 @@ pass; the sixteen Graphics snapshots pass, the five after the 229th call
 renumbered by the input library's eleven new calls (615, 616, 634, 2090,
 2093 are now 626, 627, 645, 2101, 2104). With `--pad a@1300x1`
 `launchme` plays its intro movie and reaches the Select Game menu.
+
+| 3dokit | What |
+|---|---|
+| 2e68c83 | `runtime/pf_cel`: an `LRFORM` cel (a bitmap's line pairs), PRE0's BGND bit with the CCB's. `runtime/pf_audio`: cues and the folio's timer list (`SignalAtTime`, `SleepUntilTime`, `GetCueSignal`, a cue deleted). `runtime/pf_math` (new): Operamath's `MulManyVec3Mat33_F16` as MADAM's matrix engine computes it. README |
+
+Only the runtime's C++ changed (no battery). The three traces
+(`launchme` to its 234th call, `p`, `LaunchMe`) are session 11's byte for
+byte; self-test 0 failures over 1,029 functions; the six memory runs and
+the sixteen Graphics snapshots pass. With seven presses `launchme` goes
+through Select Character, the circuit, its champion's movie and the
+pre-race screen, loads the race (22 seeds on the recompiler's command
+line, `09-recompiler.md`) and stops at its first stretched cel.
