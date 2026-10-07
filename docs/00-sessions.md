@@ -360,3 +360,9 @@
 * **Where the run stops**: nowhere on the way it was driven -- from the
   boot through a race, the Rankout screen and QUIT, `launchme` runs to its
   own end.
+* **The window** (after the wrap-up, the user's choice): `pfboot --window`
+  shows the display in an SDL3 window in real time, with the keyboard
+  (arrows, Z X C for A B C, Enter for P, Backspace for X, Q W for L R) and
+  a gamepad as the pad; `--record FILE` writes the presses as `--pad`
+  options that replay the run. `tools/play.cmd` starts it; the user was
+  playing in the first test window before it was even announced.

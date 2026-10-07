@@ -303,3 +303,18 @@ Only the runtime's C++ changed (no battery). The three traces are session
 sixteen Graphics snapshots pass; the 2,687 fields to the Select Circuit
 screen are 1c6cb66's byte for byte. With A held `launchme` drives three
 laps, shows its Rankout screen, and, told QUIT, ends.
+
+| 3dokit | What |
+|---|---|
+| b7fe71b | `runtime/pf_window` (new, with SDL3): `pfboot --window` -- the display in a window in real time, the keyboard and a gamepad as the pad -- and `--record FILE` (the presses as `--pad` options). `runtime/pf_event`: the pad from the host, the record. `runtime/pf_graphics`, `pf_time`: the field for the window, the wait without limit in real time. `runtime.cmake`: the window joined to pfboot when SDL3 is found (statically linked). README |
+
+Only the runtime's C++ and cmake changed (no battery). The three traces
+are session 12's byte for byte; self-test 0 failures; the six memory runs
+and the sixteen Graphics snapshots pass; the 2,687 fields to Select
+Circuit are f1af788's byte for byte.
+
+| 3dokit | What |
+|---|---|
+| efdcd36 | `runtime/pf_window`, `pf_event`: the record in LF lines and written at any exit; Esc no longer ends the window's run (the user's window closed mid-race, most likely on Esc). |
+
+The same checks as b7fe71b, all byte for byte.

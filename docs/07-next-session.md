@@ -1,4 +1,4 @@
-# Next session: a race placed in, or the game on a screen
+# Next session: the game played in its window -- the screens after a placed race
 
 Where things stand: the translator is whole (`09-recompiler.md`, 22 seeds:
 code only data reaches), and on 3dokit's Portfolio runtime `launchme`
@@ -14,7 +14,10 @@ returning 1 to the OS after 935,186 calls. Session 13
 (`03-executables.md`, "The race beside the real game, driven to its end")
 added DeleteItem of a task, `UnloadInsTemplate` and a template's deletion,
 `SetFunction` refused, `pfboot --pad ...+H` (a held press) and
-`--frames-at`.
+`--frames-at`; after the wrap-up, at the user's choice, `pfboot --window`:
+the display in an SDL3 window in real time, the keyboard and a gamepad as
+the pad, `--record FILE` writing the presses as `--pad` options
+(`tools/play.cmd`).
 
 ```sh
 python -m 3dokit.recomp --out build/recomp --optest \
@@ -41,19 +44,15 @@ line about 40,300, Rankout 40,390.
 
 ## The work, in order
 
-1. **Ask the user** which comes first (both are theirs to choose):
-   * **Placing in a race**, by a scheduled pad: steering (left, right) with
-     A held, field by field -- the run is deterministic, so each corner can
-     be tried and kept; the frames and the minimap show the line. A place
-     in the top three reaches what Rankout skips: `DoWinPlaceShow`, the
-     purse, `DoBlackMarketScreen`, `DoEnhancementScreen`, the next track --
-     the next stops. Long: three laps are about 33,000 fields and each try
-     runs from the boot (a snapshot to start from would be a kit feature).
-   * **The display**: a window (SDL3) showing the VDLs, the keyboard as the
-     pad (A on Z, the user's mapping), the guest clock held to real time --
-     then the user drives, and a record of the pad (`--pad` lines) can be
-     replayed by `pfboot`. The display control words (interpolation) not
-     modelled yet.
+1. **What the user found in the window**: how its speed compares with
+   Phoenix (the guest's 1 us a safe point sets how much a field holds;
+   the window only holds the guest back), and the next stops the user's
+   play reaches -- a placed race (`DoWinPlaceShow`, the purse,
+   `DoBlackMarketScreen`, `DoEnhancementScreen`, the next track),
+   Tournament, Options. A play that stops can be run again from
+   `build/play-pad.txt` (`pfboot ... $(cat build/play-pad.txt)`), traced.
+   Not modelled yet in the window: the display control words
+   (interpolation), sound.
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),
