@@ -167,3 +167,12 @@ the timer and waits out 47 vertical blanks (0.78 s) before stopping at its
 351st call (`DeleteItem`, not yet). `launchme` clears its screens at the
 first two blanks, sets its audio clock and stops at its 234th call, the
 File folio's `OpenDiskStream`.
+
+| 3dokit | What |
+|---|---|
+| 2653b42 | `rom`: a console ROM's Opera volume (blocks of 4 bytes) and its AIF images, unpacked by their own decompressors; the runtime's SPORT and timer drivers as the FZ-1 ROM's Operator runs them (a command done at once returns 1, the kernel's dispatch completes it and `SendIO` returns 1; the timer's DELAY always queued and counted in `io_Actual`, DELAYUNTIL's subtraction, `CMD_READ`); README |
+
+The battery from the submodule's 5587c75 and from the new kit: all 51
+outputs byte-identical (the new module touches none of the others). The
+three programs' traces are 5587c75's: `launchme` stops at its 234th call,
+`p` at its 351st, `LaunchMe` at its 36th.

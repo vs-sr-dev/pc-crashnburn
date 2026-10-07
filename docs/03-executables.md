@@ -506,17 +506,26 @@ SDK's documentation):
   bit 0 in an odd field (bit 11 of CLIO's 0x3400034), and writes the
   field's VDL into the display link. GRAPHIX's own wait (0x510c) spins
   until `gf_VBLNumber` changes.
-* **The timer device** is not on the disc: the 1993 kernel names no
-  `timer` (only "Error starting timers"), and neither does `misc_code` (an
-  "Operator"). The SDK ("The Timer Device"): unit 0 counts vertical blanks,
-  unit 1 microseconds; `TIMERCMD_DELAY` (3) on unit 0 completes when the
-  count has gone up by `ioi_Offset` -- "if you ask the timer to wait for 1
-  vblank while the beam is near the trigger location, the I/O request will
-  be returned in less than 1/60th" -- and `TIMERCMD_DELAYUNTIL` (4) when it
-  reaches `ioi_Offset`.
-* **SPORT's copies and clones wait for the vertical blank** ("The copy
-  operation always occurs during vertical blanking"); `FLASHWRITE_CMD` does
-  not.
+* **The timer device** is not on the disc (the 1993 kernel names no
+  `timer`; `misc_code` is a second build of the same kernel) but in the
+  console ROM's Operator (below). Unit 0 counts vertical blanks, unit 1
+  microseconds, five commands (table 0x25de0). `TIMERCMD_DELAY` (3,
+  0x21694) on unit 0 always queues the request, `IO_QUICK` cleared, in
+  order of `ioi_Offset`; at each blank (0x213a8) the timer's 64-bit count
+  goes up by 1 and each queued request's `io_Actual` by 1, completing it
+  once `io_Actual` reaches `ioi_Offset` -- a delay of n ends at the n-th
+  blank after it is sent, of 0 at the next. `TIMERCMD_DELAYUNTIL` (4,
+  0x217d4) first sets `ioi_Offset` to the count *less* `ioi_Offset` (the
+  wrong way round: a time to come waits about 2^32 blanks) and is then a
+  DELAY. `CMD_READ` (1) writes the count to an aligned 8-byte buffer;
+  `CMD_WRITE` (0) is BADCOMMAND. The SDK's account ("The Timer Device")
+  agrees for DELAY.
+* **SPORT** (the Operator, 0x23188; commands 0 to 3 BADCOMMAND): copies and
+  clones are queued (`IO_QUICK` cleared, 0x233ec) and done by the SPORT FIRQ
+  at the vertical blank (0x22f80, on lines 10 to 13), `FLASHWRITE_CMD` at
+  once (0x2337c). A command done at once returns 1, and the kernel's
+  dispatch (os_code 0x1468c) then completes the request and `SendIO`
+  returns 1.
 * **Quick IO**: the lib's `DoIO` (0x2e7c4) sets `IO_QUICK` and its
   `WaitIO` (0x2e74c) returns at once while `io_Flags` has `IO_QUICK`. The
   kernel's `SendIO` clears `IO_DONE|IO_QUICK`, sets `IO_QUICK` back if
@@ -561,3 +570,31 @@ the recompiled code (an estimate of the ARM60's pace) and jumping ahead
 when every task waits, so every run gives the same trace. The boot clears
 its two screens in two fields (the SPORT copies now wait for the blank),
 and `InitTimer` sets the audio clock to 345 frames a tick.
+
+## The console ROM: what the disc does not bring
+
+The File folio, the timer and SPORT are nowhere on the disc: not in
+`System/Folios`, not in `os_code`, not in `misc_code` (a second build of the
+same kernel: the same strings, "Could not find Operator process"). They are
+in the console's ROM, which the user's Phoenix setup carries
+(`D:\Tools\phoenix28\ph-win64\3DO\BIOS`, read locally only; nothing of it
+goes in git). `python -m 3dokit.rom panafz1.bin` (the FZ-1's, 1993) lists:
+
+* **An Opera volume** "rom" at 0x28000 whose block size is 4 bytes: `apps/`
+  (AudioCD, ELDemo, InsertDisc, the Panasonic splash), `bin/` (the ROM's own
+  audiofolio, graphix, operamath, eventbroker, chknvram, format), `audio/`.
+* **Fifteen AIF images**, twelve compressed, each unpacked by its own
+  decompressor. Ahead of the volume: the boot's kernel (0x20a0, linked at
+  0x10000), the **Operator** (0xa830, linked at 0x20000, "Operator Version
+  ..., BuildDate: Tue Aug 3 17:06:15 PDT 1993": the timer, xbus, SPORT,
+  MKE CD-ROM and File devices, the idle task, `/bin/shell`) and the **File
+  folio** (0x188a0, linked at 0: filesystems, open files, the program
+  loader's "Can't allocate program area").
+* **The File folio's tables**: 10 vectors at 0x6584 (slot -4
+  `OpenDiskStream` 0x4e40, -8 `ReadDiskStream` 0x5110, -12
+  `SeekDiskStream` 0x55f4, -16 `CloseDiskStream` 0x5094; -20 to -40 0x6084,
+  0x5ac0, 0x5668, 0x5868, 0x587c, 0x5a58), 14 SWIs at 0x654c (0x23b4,
+  0x3938, 0x3684, 0x378c, 0x3620, 0x3598, 0x3514, 0x3f08, 0x33d8, 0x2370,
+  0xc84, 0x394c, 0x349c, 0x3388 in table order; which way the numbers run
+  is to be read, as the kernel's and the audio folio's run backwards),
+  `CREATEFOLIO_TAG_DATASIZE` 0x10c.

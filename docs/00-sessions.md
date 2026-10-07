@@ -145,3 +145,37 @@
 * **Where the run stops**: the game's 218th call, `OwnAudioClock`: the
   audio clock, then the File folio's streams (`CNB/Glue/Chars.bin`). Time
   is next.
+
+## Session 7 (2026-10-07) — time, and the console ROM
+
+* **Time** (`03-executables.md`, "Time"): what the game times -- its frame
+  waits for the vertical blank (`WaitVBL` on the timer device), its sound
+  runs on the audio clock at 128 Hz (`InitTimer`), its music sleeps on a
+  cue -- and what the 1993 OS does: GRAPHIX's VBL FIRQ, the audio folio's
+  clock (its DSP countdown, the daemon's 240 Hz, `OwnAudioClock` a
+  semaphore lock, `SetAudioRate`'s rounding through Operamath's
+  `DivUF16`, run on its own code), the kernel's semaphores, quick IO.
+* **The decision of the session**: the runtime's clock is the guest's own,
+  1 us per safe point of the recompiled code and a jump to the next event
+  when every task waits, so every run gives the same trace on any host;
+  events stand for the interrupts (the vertical blank, the audio tick) and
+  a higher-priority task they make ready runs at once. A run in real time
+  will hold the guest back to the host's clock, later.
+* **The console ROM** (`03-executables.md`, "The console ROM"): the File
+  folio, the timer and SPORT are not on the disc. With the user's go-ahead
+  the FZ-1's ROM is read locally (never committed): `3dokit.rom` reads its
+  Opera volume (4-byte blocks) and unpacks its fifteen programs, among them
+  the Operator (3 August 1993) and the File folio. The runtime's SPORT and
+  timer, written from the SDK in sessions 5 and 7, were checked against the
+  Operator and corrected: a delay of 0 blanks waits for the next one,
+  `DELAYUNTIL` subtracts the 1993 way round, a command done at once makes
+  `SendIO` return 1.
+* **Checks**: the battery's 51 outputs byte-identical; the self-test; the
+  six memory runs and the eleven Graphics snapshots pass `pfcheck` from the
+  new boot (three more items: the clock's two semaphores and the timer).
+  OMF2097's `LaunchMe` unchanged; Immercenary's `p` now finds its timer and
+  waits out 47 blanks, to its 351st call.
+* **Where the run stops**: `launchme` clears its screens at the first two
+  blanks, takes the audio clock, sets 128 Hz, and stops at its 234th call,
+  the File folio's `OpenDiskStream` of `CNBSFX/gun.sfx`. Files are next,
+  read in the ROM's File folio.
