@@ -697,12 +697,17 @@ What the game does with it:
   SEEK_END)` for the length, back with `SEEK_SET`; `ReadDiskStream` of the
   length plus 4 into the 0x48000-byte sound area allocated in
   `InitSFXandMusic`; `CloseDiskStream`; then 0x2b214 sets one of the 59
-  empty samples to the data: `SetAudioItemInfo` with the tags 0x16 (1 for
-  8 bits, else 2), 0x31 (8), 0x17 (1), 0x18 (the length, halved when not 8
-  bits), 0x19 (0x3c), 0x2e (0x2000 << 16), 0x1f and 0x20 (-1 and -1; for
-  `engine1` and `flamer`, 12 and 13, 0 and the length: a loop over the
-  whole sound), 0x24 (the address) and 0x23 (the length); on an error the
-  sample is deleted. What each tag is, is the audio folio's to say.
+  empty samples to the data: `SetAudioItemInfo` with, by the 1.2 SDK's
+  `audio.h` (`AF_TAG_AMPLITUDE` 10 and on), `AF_TAG_WIDTH` (0x16: 1 byte
+  for 8 bits, else 2), `AF_TAG_NUMBITS` (0x31: 8), `AF_TAG_CHANNELS` (0x17:
+  1), `AF_TAG_FRAMES` (0x18: the length, halved when not 8 bits),
+  `AF_TAG_BASENOTE` (0x19: 60, middle C), `AF_TAG_SAMPLE_RATE` (0x2e: 0x2000
+  << 16, 8,192 Hz if the value is 16.16), `AF_TAG_SUSTAINBEGIN` and
+  `AF_TAG_SUSTAINEND` (0x1f, 0x20: -1 and -1; for `engine1` and `flamer`,
+  12 and 13, 0 and the length -- a loop over the whole sound),
+  `AF_TAG_ADDRESS` (0x24) and `AF_TAG_NUMBYTES` (0x23: the length); on an
+  error the sample is deleted. What the folio checks and derives from them
+  is still to be read.
 * **`InitHardware`** then reads `$exdir/CNB/Glue/Chars.bin` and `Plate.3do`
   (0x2d3c4, unnamed library code past `SleepTask`, through the streams), and
   `CDIO_OpenAFile` (0x3070) opens `$boot/bigfile` and makes eight IOReqs on

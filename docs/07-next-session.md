@@ -29,13 +29,15 @@ so a runtime change can be tried before it is committed.
 ## The calls, in the order the game makes them (`--lenient` preview)
 
 1. **`SetAudioItemInfo` on a sample** (0x2b214, `03-executables.md`,
-   "What the game does with it"): the tags 0x16, 0x31, 0x17, 0x18, 0x19,
-   0x2e, 0x1f, 0x20, 0x24, 0x23, fourteen times, one sample each. Read in
-   AUDIOFOLIO V20.19 what each tag is and what the folio checks and
-   derives (the sample's defaults at 0x2c04, its creation at 0x3a3c, the
-   SWI's handler); the runtime keeps the values for a native mixer, as for
-   the instruments. Its samples are made without tags so far
-   (`create_sample` in `pf_audio.cpp`).
+   "What the game does with it"): `AF_TAG_WIDTH`, `NUMBITS`, `CHANNELS`,
+   `FRAMES`, `BASENOTE`, `SAMPLE_RATE`, `SUSTAINBEGIN`, `SUSTAINEND`,
+   `ADDRESS`, `NUMBYTES` (named from the SDK, values listed there),
+   fourteen times, one sample each. Read in AUDIOFOLIO V20.19 what the
+   folio checks and derives from them (the sample's defaults at 0x2c04,
+   its creation at 0x3a3c, the SWI's handler; whether `SAMPLE_RATE` is
+   16.16); the runtime keeps the values for a native mixer, as for the
+   instruments. Its samples are made without tags so far (`create_sample`
+   in `pf_audio.cpp`).
 2. `$exdir/CNB/Glue/Chars.bin` and `Plate.3do` (through the streams),
    `CDIO_OpenAFile` of `$boot/bigfile` with eight IOReqs, reads polled:
    all implemented now, to be checked against the game's own reads once
