@@ -331,3 +331,32 @@
   goes through Select Character, Select Circuit, the champion's movie and
   the pre-race screen into the race (field 7543), which runs past field
   260,000 -- the opponents racing, the player's car standing at the start.
+
+## Session 13 (2026-10-07) — the race beside Phoenix, driven to the program's end
+
+* **Beside the real game**: the user's three Phoenix screenshots of the
+  race's start match the runtime's fields 7547, 7600 and 7740 once the
+  grid is the same. The grid is chosen by the C library's `rand`, which the
+  menus advance once a field (`GlueShell`'s `Random(2)`): taking the
+  circuit at field 6356 instead of 6300 puts the player on the back row,
+  5th, as in the user's run. The projector's one-pixel question stays
+  below what Phoenix's scaled JPEGs show.
+* **Driving**: A is the accelerator (the default control configuration,
+  read in `TopOfFrame` and `CNBReadJoystick`); `pfboot --pad a@7700+40000`
+  holds it (the user's choice: the game's own button, held). Held alone it
+  takes the car three laps round, along the walls, to the line in 6th
+  place.
+* **After the race**: the music player's thread deleted (DeleteItem of a
+  task, read in os_code), the Rankout screen ("3 CONTINUES REMAIN",
+  CONTINUE and QUIT); CONTINUE runs the race again; QUIT unloads the
+  instrument templates (`UnloadInsTemplate`, a template's deletion, read
+  in AUDIOFOLIO), is refused a `SetFunction`, and the program returns 1 to
+  the OS after 935,186 calls.
+* **`pfboot --frames-at FIRST[-LAST][/EVERY]`**: frames of a long run
+  without writing every field.
+* **Checks**: the three traces byte for byte, self-test 0 failures, six
+  memory runs, sixteen Graphics snapshots; the 2,687 fields to Select
+  Circuit byte for byte against the previous build.
+* **Where the run stops**: nowhere on the way it was driven -- from the
+  boot through a race, the Rankout screen and QUIT, `launchme` runs to its
+  own end.

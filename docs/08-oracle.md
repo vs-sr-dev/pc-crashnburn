@@ -116,3 +116,19 @@ With the pad (`pfboot --pad a@1300x1`), the runtime's run goes on past the
 dialog to the intro movie and the Select Game menu (field 4478: Rally,
 Tournament, Options). There is no Phoenix screenshot of it yet; the user,
 looking at the field, confirmed it is the real game's menu.
+
+## The race's start (session 13)
+
+Three Phoenix screenshots of the race's start (Rally, Hammerhead, Crash
+Course track 1, just after RACE; 953 x 686) set beside the runtime's fields
+(320 x 241) scaled to that size with nearest neighbours. The grid is the game's `rand`
+(`03-executables.md`), advanced once a field on the menus, so the user's
+run and the runtime's agree only when the circuit is taken at the right
+field: at 6356 the runtime has the user's grid (5th of 6). Then field 7547
+matches the first shot (the HUD's numbers not yet written), 7600 the second
+(5th / 6, the speed red), and 7740 the third, a few fields early (the start
+given, the place "6" shown big, the purple car pulling away). Road, desert,
+building, stripes, the cars ahead and alongside, the player's car and its
+exhaust are where Phoenix has them, and alike to the eye at six times;
+the shots are JPEGs of a scaled picture, so a one-pixel edge (the patent's
+rule against Opera's) cannot be told from them.

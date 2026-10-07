@@ -1077,3 +1077,79 @@ counter-clockwise polygons. Opera's arbitrary path walks the same edges
 but paints the right-most pixel too; on square cels the rule gives what
 the runtime drew before, pixel for pixel (2,687 fields to the circuit
 screen compared).
+
+## The race beside the real game, driven to its end (session 13)
+
+**The grid is the player's timing.** `InitGameVariables` (0x2274), called
+by `DoCharacterSelect` and `DoRallyCircuitSelect` (the last call when the
+circuit is taken), ends in `RandomlySeedCars` (0x2374): `Random(12)` picks
+one of twelve orders of the six drivers (six bytes each at 0x56a94) into
+the drivers' table (0x69d78, 28 bytes a driver, the player's character at
+0x69d04+8). `Random` (0x596c) scales the C library's `rand` (0x2e9f0, the
+Norcroft lagged-Fibonacci generator, its state at 0x649cc), which nothing
+seeds -- but `GlueShell` (0xee4) calls `Random(2)` once a field while a
+menu waits for the pad, so the order depends on how many fields the player
+spends on the screens before the circuit is taken. `StartCars` (0x15178,
+from `InitTrackVariables`) turns the player's number into a grid place,
+`((n - 1) % 3) * 2` (`__rt_sdiv`'s remainder), the others filling the
+rest (0x5a794); `InitializePlayerCar` (0x154dc) and `InitializeEnemyCar`
+(0x15924) take each place's x and z from 0x5a744 (rows at z 7200, 8000,
+8800, x -100 and 100, times 16; two official cars at 6400 behind). With
+the pad pressed at 6300 to take the circuit the player starts on the front
+row (1st of 6); at 6356 on the back row (5th of 6), with the order the
+user's Phoenix run had.
+
+**Beside Phoenix.** The user's three screenshots of the race's start
+(Rally, Hammerhead, Crash Course track 1) set beside the run with the
+circuit taken at field 6356: field 7547 against the first (the HUD's
+digits not yet drawn), 7600 against the second (5th / 6, the four cars
+ahead, the purple car alongside, the speed red before the start), 7740
+against the third (the start given, the speed green, the "6" of the place
+shown big, the purple car pulling away) -- the same scene, the same cars
+in the same places, the road, the desert, the stripes and the cars' cels
+alike as far as Phoenix's JPEG of its scaled picture shows. The
+projector's one-pixel question (the patent's right edge against Opera's)
+is below what these shots can tell.
+
+**The accelerator is A.** `TopOfFrame` (0xa34) reads the pad every field
+(`CNBReadJoystick`, 0x21b8: `GetControlPad(1, 0, &data)`; Left with Right
+reads as Left, Up with Down as Down; the buttons that went down at
++0x1e0): left and
+right steer (+0x1cc), and the first of five masks copied from a
+configuration table (0x61f1c, five words a configuration; the Options
+screen's choice at 0x69d60, 0 by default: A, C, L, R, B) is the
+accelerator -- A in configuration 0 (+0x1d0 the time it is held). `pfboot
+--pad a@7700+40000` holds A.
+
+**Driven.** Held A alone takes the car round: it bounces along the walls
+through the water channels, the sand, the tunnel; lap 2 by field 20,000,
+lap 3 by 30,000, the car burning from its damage, over the line
+last at about 40,300. Then the game's own end of a race: the music
+player's thread deleted ("Stopping asyncload" first; the thread, named
+"name", runs `_MEDPlayer`, 0x2c4e8, and sleeps on a cue), the **Rankout
+screen** ("RANKOUT: YOU FAILED TO PLACE. 3 CONTINUES REMAIN.", CONTINUE
+and QUIT, `DoContinueScreen`, 0x224a0); CONTINUE (A) goes back to the pre-race screen and the
+race again; QUIT (down, A) leaves the glue shell: the instrument templates
+unloaded, the audio folio closed, the program's VRAM pool freed, a
+`SetFunction(0, ...)` that a task without privilege is refused, and
+`main` returns 1 -- the program ends, after 935,186 OS calls.
+
+**What it asked of the OS:**
+
+* **DeleteItem of a task** (os_code 0x167cc, the kernel's item types'
+  deletion table at 0x134e0): what the task holds first (0x16760: its
+  resource table from the last entry back, an item it made deleted as by
+  it, one it opened closed -- the thread's cue, then the audio folio),
+  the semaphores it holds unlocked (0x165fc), `SIGF_DEADTASK` (0x10) to its
+  owner, off the queue it waits on, its per-folio data, supervisor stack,
+  resource table and name freed (0x16658), and the OS's lists scavenged
+  (0x157c4). The cue's own deletion (AUDIOFOLIO 0x4798) frees its signal
+  only when the *current* task owns it: deleted by the main task, the
+  thread's signal stays allocated, as on the console.
+* **`UnloadInsTemplate`** (audio -92, AUDIOFOLIO 0x1578: a template, else
+  `AF_ERR_BADITEM`; the attachments made to the template detached; then
+  `DeleteItem`), and a **template's deletion** (the folio's ir_Delete,
+  0x24b0: its attachments, then its instruments in the order made, each as
+  by its owner; its DSP side freed).
+* **`SetFunction`** (SWI 23, os_code 0x18308): `NOTPRIV` at once from a task
+  without the privileged flag.

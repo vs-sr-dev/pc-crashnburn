@@ -293,3 +293,13 @@ sixteen Graphics snapshots pass; the 2,687 fields `launchme` shows up to
 the Select Circuit screen are those of 2e68c83 byte for byte (the
 projector on square cels, the OS's memory used again). The race runs:
 before the OS's memory was given back it filled at field 53,850.
+
+| 3dokit | What |
+|---|---|
+| f1af788 | `runtime/pf_task`, `pf_kernel`, `pf_io`: DeleteItem of a task as os_code's 0x167cc does it (its items deleted as by it, its opened items closed, its semaphores unlocked, `SIGF_DEADTASK` to its owner). `runtime/pf_audio`: `UnloadInsTemplate` and a template's deletion. `runtime/pf_kernel`: `SetFunction` refused to a task without privilege. `runtime/pf_main`, `pf_graphics`: `pfboot --pad BUTTONS@FIELD[xN][/E][+H]` (a press held H fields) and `--frames-at FIRST[-LAST][/EVERY]`. README |
+
+Only the runtime's C++ changed (no battery). The three traces are session
+12's byte for byte; self-test 0 failures; the six memory runs and the
+sixteen Graphics snapshots pass; the 2,687 fields to the Select Circuit
+screen are 1c6cb66's byte for byte. With A held `launchme` drives three
+laps, shows its Rankout screen, and, told QUIT, ends.
