@@ -179,3 +179,39 @@
   blanks, takes the audio clock, sets 128 Hz, and stops at its 234th call,
   the File folio's `OpenDiskStream` of `CNBSFX/gun.sfx`. Files are next,
   read in the ROM's File folio.
+
+## Session 8 (2026-10-07) — the File folio, read in the ROM
+
+* **The File folio, read** (`03-executables.md`, "The File folio, read in
+  the ROM"): its 14 SWIs run backwards like the kernel's (SWI 0,
+  `OpenDiskFile`, is 0x3388); the path walker (0x2614), with `$aliases`
+  substituted and walked on, `^` the filesystem's root, names without case;
+  an open file is a device of the folio's own driver, whose `CMD_STATUS` is
+  answered at once and whose reads, whole blocks only, go to the CD's queue
+  and come back later; the four stream functions are user-mode code over
+  those calls.
+* **Where `$exdir` comes from**: not the game, not the ROM. The disc's own
+  shell (`System/Tasks/shell`) makes `alias boot /` followed by a name the
+  kernel keeps (at KernelBase + 0x110: the boot volume's, it seems), goes there and runs `^/system/scripts/startopera` (`audio`,
+  `drivers`, `c`, `s`, `app`), which runs `^/AppStartup`: `alias exdir
+  $boot`. The runtime reads those scripts for their aliases.
+* **The disc's fill**: past every file's end, to the end of its last block,
+  the disc holds "iamaduck" over and over, by the byte's place in its
+  block -- 414 of the 415 files here that end inside a block (not
+  `rom_tags`) and 1,495 of 1,497 on OMF2097. The
+  runtime's reads give the same bytes.
+* **3dokit** does all of it the folio's way (`runtime/pf_file.cpp`), with
+  the kernel's `DeleteItem` for IOReqs and devices: the streams step for
+  step, their IOInfos and the file's status on the caller's stack where the
+  folio's frames put them.
+* **Checks**: the self-test; the six memory runs and eleven Graphics
+  snapshots pass `pfcheck`; OMF2097 unchanged; Immercenary's `p` gets one
+  call further (its timer's IOReq deleted). `gun.sfx` read through the
+  stream is the disc's file byte for byte.
+* **Where the run stops**: `launchme` loads all fourteen sound effects
+  (open, seek to the end and back, read, close) and stops at its 240th
+  call, the audio folio's `SetAudioItemInfo` on the first one's sample. In
+  the `--lenient` preview it then reads `$exdir/CNB/Glue/Chars.bin` and
+  `Plate.3do`, opens `$boot/bigfile` and reads it through eight IOReqs of
+  its own, and up to its 1,200th call the only other calls missing are
+  GRAPHIX's `SetScreenColor` and `DisplayScreen`.

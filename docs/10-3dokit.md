@@ -176,3 +176,19 @@ The battery from the submodule's 5587c75 and from the new kit: all 51
 outputs byte-identical (the new module touches none of the others). The
 three programs' traces are 5587c75's: `launchme` stops at its 234th call,
 `p` at its 351st, `LaunchMe` at its 36th.
+
+## Session 8
+
+| 3dokit | What |
+|---|---|
+| f9058a0 | `runtime/pf_file`: the File folio as the FZ-1 ROM's image does it -- paths walked as its 0x2614 walks them, aliases of a task and its owners (the shell's from the disc's own scripts, `CreateAlias`), `OpenDiskFile`/`CloseDiskFile` (an OpenFile device with the folio's driver: `CMD_STATUS` at once, `CMD_READ` of whole blocks queued and done at the next safe point, the mastering's `iamaduck` fill past a file's end), `ChangeDirectory` giving the directory's File item, the four stream functions step for step; `pf_io`: the kernel's `DeleteItem` for IOReqs and devices (a device's delete hook), a driver refusing with an Err, `CreateIOReq` and `SendIO` for the OS's own code; `pf_kernel`: `OpenItem`/`CloseItem` for the OS, item numbers freed; README |
+
+No Python changed, so the battery's outputs are c46c7e7's. The self-test
+replays with 0 failures; the six memory runs and the eleven Graphics
+snapshots from the new boot pass `pfcheck` (0 results and 0 bytes differ;
+`ChangeDirectory` now makes the root's File node, 0x5c bytes more than the
+old stand-in, so the OS's addresses move up). OMF2097's `LaunchMe` makes
+the same 36 calls. Immercenary's `p` now deletes its timer's IOReq (its
+351st call) and stops at its 352nd (`DetachSample`, not yet). `launchme`
+reads its fourteen sound effects and stops at its 240th call, the audio
+folio's `SetAudioItemInfo`.

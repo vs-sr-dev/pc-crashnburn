@@ -595,6 +595,110 @@ goes in git). `python -m 3dokit.rom panafz1.bin` (the FZ-1's, 1993) lists:
   `SeekDiskStream` 0x55f4, -16 `CloseDiskStream` 0x5094; -20 to -40 0x6084,
   0x5ac0, 0x5668, 0x5868, 0x587c, 0x5a58), 14 SWIs at 0x654c (0x23b4,
   0x3938, 0x3684, 0x378c, 0x3620, 0x3598, 0x3514, 0x3f08, 0x33d8, 0x2370,
-  0xc84, 0x394c, 0x349c, 0x3388 in table order; which way the numbers run
-  is to be read, as the kernel's and the audio folio's run backwards),
+  0xc84, 0x394c, 0x349c, 0x3388 in table order; the numbers run backwards,
+  as the kernel's and the audio folio's do: SWI 0 is the last word),
   `CREATEFOLIO_TAG_DATASIZE` 0x10c.
+
+## The File folio, read in the ROM
+
+The FZ-1 ROM's File folio (`0188a0_000000.bin` from `3dokit.rom --unpack`,
+linked at 0, no embedded names), as far as the game reaches it, done the
+same way by the runtime (`3dokit/runtime/pf_file.cpp`):
+
+* **The SWIs** run backwards from 0x654c: 0 `OpenDiskFile` 0x3388, 1
+  `CloseDiskFile` 0x349c, 4 `MountFileSystem` 0x2370, 5
+  `OpenDiskFileInDir` 0x33d8, 7 `ChangeDirectory` 0x3514, 8
+  `GetDirectory` 0x3598, 9 `CreateFile` 0x3620, 10 `DeleteFile` 0x378c, 11
+  `CreateAlias` 0x3684. The folio reaches the kernel through stubs that
+  name its internal functions (0x5e8 `CreateItem` 0, 0x5f8 `DeleteItem` 3,
+  0x608 `OpenItem` 5, 0x620 `CloseItem` 8, 0x6a0 `CompleteIO` -8) and the
+  kernel's vectors (0x16c `AllocMemFromMemLists`, 0x184 `FreeMem...`,
+  0x1b4 `LookupItem`, 0x6110 `memcpy`).
+* **A task's file data** (0x82c, made the first time a task needs it):
+  its current directory (the folio's root at first), its program
+  directory, its last error, its list of aliases.
+* **The path walker** (0x2614): a `/` (leading, or doubled) goes to the
+  folio's root; `.` stays, `..` goes to the parent, `^` to the root of the
+  current filesystem; a name of 32 characters or more is BADNAME
+  (0xD556F104); any other name is looked up first in the folio's list of
+  known files and then on the medium, NOTADIRECTORY (0xD556F102) when the
+  place reached is not a directory, NOFILE (0xD556F101) when nothing has
+  that name. A name that starts with `$` is an alias (0x23b8: the current
+  task's list, then its owner's, up the chain, names compared without
+  case by the kernel's `FindNamedNode`): the path is built again with the
+  alias's value in place of the name, and the walk goes on from there.
+  `{a|b}` alternatives exist and are not met yet.
+* **Aliases come from the shell.** No string `boot` or `exdir` is in the
+  ROM. The disc's own shell (`System/Tasks/shell`, compressed) runs `alias
+  boot /` followed by a name the kernel keeps (KernelBase + 0x110, compared
+  with `rom` first), `cd $boot`, then `^/system/scripts/startopera`; that
+  script makes `audio`, `drivers`, `c`, `s` and `app`, starts the event
+  broker and the folios, and runs `^/AppStartup`, which makes `exdir`
+  (`$boot`) and runs `runme1`. The game's task is the shell's child, so its
+  `$exdir/CNB/...` finds the shell's alias. The ROM's own startup script
+  (in its volume) makes `top`, `audiocd`, `eldemo` and the rest for the
+  ROM's applications.
+* **`OpenDiskFile`** (0x3388): the walk, then 0x24d8: an OpenFile device
+  (`CreateItem` with the folio's driver, the File's name, priority 1,
+  FileIOReqs of 0x8c bytes; 0x98 bytes; made while the task is briefly
+  privileged, so the task owns it), `ofi_DeviceType` 2, `ofi_File`, the
+  File's use count up, opened (`OpenItem`). `CloseDiskFile` (0x349c):
+  an OpenFile of this driver, else BADITEM (0xD556F001); `CloseItem`,
+  `DeleteItem` -- whose device hook (0x2438) gives the File one use less.
+* **The driver** (`CREATEDRIVER` tags at 0x6694: dispatch 0xd9c, abort
+  0xd88, init 0xcb0, 11 commands). The dispatch is the folio's own, and
+  `SendIO` returns what it returns: a command above 10 is BADCOMMAND
+  (0xD556F00C) and the request is left as it was. `CMD_STATUS` (0x107c) is
+  answered at once: a FileStatus (driver 5, family 3, size 0x28, the
+  File's block size and count, its flags, `DS_USAGE_READONLY` for a
+  read-only file, `fs_ByteCount`) copied to the receive buffer -- 0x28
+  bytes when the buffer is shorter, the folio having written a max for a
+  min --, `io_Actual` untouched, `CompleteIO`, and 0. Everything else but
+  `FILECMD_GETPATH` goes to the filesystem's queue; a CD's (0x117c, an
+  OptimizedDisk's, set at 0x1e60) takes only `CMD_READ`, of whole blocks
+  (else 0xD556F009), clears `IO_QUICK` and queues the request: `SendIO`
+  returns 0 and the read finishes later, `io_Actual` growing by what the
+  drive moved (0x17c0), whole blocks. A refusal is `io_Error`,
+  `CompleteIO` and the error back.
+* **The streams** (vectors -4 to -16) are user-mode code over those calls.
+  `OpenDiskStream` (0x4e40): the Stream (0x38 bytes, `MEMTYPE_FILL`, from
+  the task's lists), `OpenDiskFile`, an IOReq, `DoIO` of `CMD_STATUS`
+  into its stack, a buffer (`-bSize` blocks, at most the file's; `bSize`
+  rounded up to whole blocks; by default 2 blocks, 1 for a file of two
+  blocks or fewer; at least 256 bytes; `MEMTYPE_DMA`), and the first read
+  sent and left running -- so `OpenDiskStream` fails if `SendIO` is not 0:
+  a read must never be done at once. `ReadDiskStream` (0x5110) takes the
+  running read in (waiting for it only when a seek is pending), makes a
+  pending seek inside the buffer or starts again from the seek's block,
+  copies out what the buffer holds up to the end of the file, reads what
+  is still wanted straight into the caller's buffer in whole blocks and a
+  last part block through its own, and sends for the next blocks while
+  the buffer has room. `SeekDiskStream` (0x55f4) only records where the
+  next read starts (`SEEK_END` counts back from the end: length less
+  offset). `CloseDiskStream` (0x5094) waits for a running read and undoes
+  the rest. The folio has its own `CheckIO`, `WaitIO` and `DoIO`
+  (0x6230, 0x6254, 0x62cc), the same as the 1993 library's.
+* **What a file's last block holds**: past the file's end, the disc has the
+  eight letters `iamaduck` over and over, by the byte's place in its block
+  -- every file that ends inside a block, on this disc (414 of 415) and on
+  OMF2097's (1,495 of 1,497), but `rom_tags` and OMF2097's `BannerScreen`.
+  A stream's buffer holds those bytes after its last read; the runtime's
+  reads give them too.
+
+What the game does with it:
+
+* **`LoadSFX`** (0x2ab64), for each of the 14 names at 0x64338:
+  `OpenDiskStream(name, 0)`; `SeekDiskStream(0, SEEK_CUR)`, `(0,
+  SEEK_END)` for the length, back with `SEEK_SET`; `ReadDiskStream` of the
+  length plus 4 into the 0x48000-byte sound area allocated in
+  `InitSFXandMusic`; `CloseDiskStream`; then 0x2b214 sets one of the 59
+  empty samples to the data: `SetAudioItemInfo` with the tags 0x16 (1 for
+  8 bits, else 2), 0x31 (8), 0x17 (1), 0x18 (the length, halved when not 8
+  bits), 0x19 (0x3c), 0x2e (0x2000 << 16), 0x1f and 0x20 (-1 and -1; for
+  `engine1` and `flamer`, 12 and 13, 0 and the length: a loop over the
+  whole sound), 0x24 (the address) and 0x23 (the length); on an error the
+  sample is deleted. What each tag is, is the audio folio's to say.
+* **`InitHardware`** then reads `$exdir/CNB/Glue/Chars.bin` and `Plate.3do`
+  (0x2d3c4, unnamed library code past `SleepTask`, through the streams), and
+  `CDIO_OpenAFile` (0x3070) opens `$boot/bigfile` and makes eight IOReqs on
+  it, whose reads the game polls with `LookupItem` until done.
