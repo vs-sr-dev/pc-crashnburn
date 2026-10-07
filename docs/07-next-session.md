@@ -53,6 +53,14 @@ line about 40,300, Rankout 40,390.
    `build/play-pad.txt` (`pfboot ... $(cat build/play-pad.txt)`), traced.
    Not modelled yet in the window: the display control words
    (interpolation), sound.
+   **The guest's speed**: the user found the window smoother than Phoenix,
+   the movies above all. Measured here: the intro movie shows 17.5
+   distinct frames a second (350 in fields 2000-3199), the race 30 (one
+   every two fields, the game's own cap: it never misses one). A safe point
+   is worth 1 us (`pf_time.cpp`, an estimate); if the ARM60 here is faster
+   than the console's, the game draws more than it would. To tell: the
+   intro movie's length on Phoenix (here about 53 s, field 1306 to 4478)
+   and its frames a second there; then `g_pf_safe_point_ns` calibrated.
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),
