@@ -91,6 +91,14 @@ functions that run without the OS, with 0 failures
 and stops at the first call not yet implemented (`FindMH`, the memory
 lists).
 
+**Sessions 4 to 12** (`docs/00-sessions.md`): the 1993 OS's memory,
+screens, devices, audio items, tasks, time, File folio (from the console
+ROM), messages and event broker, and the cel engine, each as its code on
+the disc or in the ROM does it. `launchme` now plays its movies, takes a
+scheduled pad through its menus, and runs a race -- the 3D cels drawn by
+the projector as 3DO's patent describes it -- with no picture on screen
+yet but `pfboot --frames`, and no sound.
+
 ## Documentation
 
 | | |
