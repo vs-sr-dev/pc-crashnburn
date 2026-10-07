@@ -245,3 +245,31 @@
   `UnloadSample`).
 * **Where the run stops**: the 14,822nd call, `StopInstrument` on the
   movie's voice, once the logo has played.
+
+## Session 10 (2026-10-07) — the movie's end, the cel engine, the choice dialog
+
+* **The voice stopped**, read in AUDIOFOLIO: `StopInstrument`, the states
+  the folio keeps (an instrument's, its DSP side's, each attachment's, the
+  attachment each FIFO plays), `StartInstrument` starting only each FIFO's
+  first attachment without `NOAUTOSTART`, and deletion of a playing
+  attachment and of a sample. The game then takes the movie's sound down
+  and puts `varmono8` back on voice 0.
+* **The cel engine** (`3dokit/runtime/pf_cel.cpp`), behind GRAPHIX's
+  `DrawCels` -- which only writes MADAM's registers and waits: written from
+  the 3DO Graphics Programmer's Guide (chapters 3 and 5, in the
+  3do-devkit's docs), with Opera's MADAM read where the guide is silent
+  (the pixel processor drops each stage's fraction, 2D halves the sum; a
+  packed row ends at its last word; the V and H bits; relative pointers as
+  `MakeCCBRelative` makes them, which Opera agrees with). The projector
+  draws only square cels for now; the rest stops the run.
+* **The choice dialog**: CRASH'N BURN lit and PREVIEWS dimmed, from
+  `IntroScreen.3DO`, drawn each frame; beside Phoenix's screenshot the
+  buttons' faces agree within a level or two of 255
+  (`08-oracle.md`).
+* `pfboot --snap` now also works on a call not implemented yet.
+* **Checks**: the three traces byte for byte, the self-test, six memory
+  runs, sixteen Graphics snapshots.
+* **Where the run stops**: it does not -- the dialog waits on the pad for
+  ever. The game's input library found no event broker (`FindItem` of the
+  MsgPort "eventbroker" at its 229th call) and its `GetControlPad` returns
+  -1. Next: the kernel's messages and the broker.

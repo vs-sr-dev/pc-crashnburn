@@ -95,3 +95,17 @@ what the JPEG explains; the stars and the lettering fall in the same
 places. The movie's picture, the CLUT and the line pairs are right as far
 as one frame shows; the display control words (interpolation) are still
 not modelled.
+
+## The choice screen, beside Phoenix's (session 10)
+
+The runtime's dialog field (`pfboot --frames`, VBL 1197, once both
+buffers hold the buttons) set beside the third screenshot with session 9's
+placement: the logo, the stars and the lettering as before, and the two
+buttons in the same place to within a source pixel, CRASH'N BURN lit and
+PREVIEWS dimmed. Where the runtime's picture is flat (a pixel whose eight
+neighbours are the same colour, inside each button), Phoenix's pixels at
+the same places average (33, 25, 56) against the runtime's (32, 24, 57) on
+the lit button's face (101 pixels) and (7, 8, 17) against (8, 8, 16) on the
+dimmed one's (60 pixels): the pixel processor's two modes -- 1.5 times, and
+17/32 -- come out as Phoenix draws them. The comparison script
+(`cmp_dialog.py`) stays in the session's scratchpad.

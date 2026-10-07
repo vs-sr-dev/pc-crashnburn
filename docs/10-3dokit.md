@@ -240,3 +240,16 @@ folio's `AttachSample`.
 BADITEM, then `UnloadSample`, not yet). Self-test 0 failures; six memory
 runs and sixteen Graphics snapshots pass. `launchme` plays its first
 movie to its end and stops at its 14,822nd call, `StopInstrument`.
+
+| 3dokit | What |
+|---|---|
+| f29a0a6 | `runtime/pf_audio`: `StopInstrument`, the instruments' and attachments' states as AUDIOFOLIO keeps them (`StartInstrument` starting each FIFO's first attachment without `NOAUTOSTART`), deleting a playing attachment, a sample |
+| 5c29642 | `runtime/pf_os`: `--snap` also before a call not implemented yet |
+| 94a5707 | `runtime/pf_cel` (new): the cel engine; `DrawCels` as GRAPHIX starts it (Graphics -172, SWI 39) |
+| 8072d33 | README |
+
+Only the runtime's C++ changed (no battery). The three traces (`launchme`
+to its 234th call, `p`, `LaunchMe`) are session 9's byte for byte;
+self-test 0 failures over 1,029 functions; the six memory runs and the
+sixteen Graphics snapshots pass. `launchme` ends its movie and draws its
+choice dialog for ever (no pad: no event broker).

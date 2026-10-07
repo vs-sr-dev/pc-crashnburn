@@ -872,3 +872,60 @@ timer waits, each waited for with `WaitSignal`, a 614,400-byte buffer from
 DRAM ("Dialog graphics") given back at the end. Nothing is heard: the
 DSP is not there, and the sound buffer only fills. The run stops at its
 14,822nd call, `StopInstrument` on the movie's voice.
+
+## The movie's end, and the choice dialog (session 10)
+
+**The voice stopped, read in AUDIOFOLIO.** `StopInstrument` (SWI 3,
+0x1ddc) asks neither whether the folio is open nor who owns the
+instrument: a started instrument (node +0x30 above 1) becomes 1, its DSP
+side stops (0x7be8), and with it every FIFO's playing attachment (0x7cf8:
+the folio's table of the DSP's FIFOs names it at +0x18 of the FIFO's
+entry; the attachment's own state, +0x26, goes from 3 to 1);
+`AF_INSF_AUTOABANDON` then leaves it at 0. `StartInstrument` (0x7148) stops
+a running instrument first, and then starts, on each FIFO in the
+template's order, only the first attachment made without
+`AF_ATTF_NOAUTOSTART` (0x74b8: `AF_ERR_NULLADDRESS` for a sample without an
+address, `AF_ERR_OUTOFRANGE` under 4 bytes; neither is the call's result).
+Deleting a playing attachment (0x61cc) stops its whole instrument; deleting
+a sample (0x3d18) stops, then deletes, every attachment made with it.
+
+Then the game takes the movie's sound down (`SwapOutDCSQXD`, 0x2be10, and
+its callers): `LinkAttachments(at, 0)` on the stopped buffer,
+`DetachSample`, the buffer's sample deleted, `dcsqxdhalfmono` disconnected
+from the mixer's `Input0` and deleted, a `varmono8` instrument made in its
+place (its `Frequency` and `Amplitude` knobs grabbed, connected to
+`Input0`), the mixer's `LeftGain0` and `RightGain0` raised from 0 to 5,100
+in steps of 100, the movie's eight IOReqs (0xc3 to 0xca) deleted and its
+file closed, the 143,360-byte buffer given back ("Deallocating ... from bank
+0"). `DisplayScreen(12)` -- then the dialog.
+
+**The dialog**, `DoLogoScreen`'s choice between the game and the Preview,
+is drawn by the cel engine: each frame a SPORT request (IOReq 0xbb), a
+wait, `DrawCels` into the bitmap of the screen not shown (17, then
+`DisplayScreen(15)`; 14, then `DisplayScreen(12)`). Its CCB list is two
+cels whose data is `CNB/Glue/IntroScreen.3DO`'s (at its bytes 8 and 1,420),
+the buttons: CRASH'N BURN at
+(68, 193), 100 x 27, and PREVIEWS at (178, 193), 70 x 27, both 16-bit
+uncoded packed, `BGND` set (a black pixel is drawn, as red 1), drawn square
+(HDX and VDY 1, the rest 0), P-mode 0 always (POVER 10). The lit button's
+PIXC is 0x1cc0 -- the pixel times 8 over 16, plus the pixel: 1.5 times --
+and the other's 0x00c1, the pixel over 16 plus the pixel, halved: the
+choice is shown by brightness alone. Every row of the packed data decodes
+to exactly the cel's width, and the rows that have no end-of-row packet end
+on their last word. The bitmap's control word is GRAPHIX's default
+(0xE1500000: bit 15 from the decoder, bit 0 from the pixel processor), its
+REGCTL0 0x1414 (320 wide), REGCTL1 0x00EF013F (clipped to 320 x 240). The
+field it shows matches Phoenix's screenshot (`08-oracle.md`).
+
+**The pad.** `GetJoystick` (0x225e8) reads at most every six fields
+(`gf_VBLNumber`) through the 1993 input library's `GetControlPad(1, 0,
+&data)` (0x2e3b8). That library's `InitEventUtility` (0x2e204), called at
+the game's 229th call, looks for the event broker's message port
+(`FindItem` of a MsgPort named "eventbroker") and, finding none, gives up
+-- so `GetControlPad` returns -1 for ever and the dialog never sees a
+button. With the port there it would make a reply port (`CreateMsgPort`)
+and a message (`CreateMsg`), then `SendMsg` the broker an `EB_Configure`
+request (event.h's `ConfigurationRequest`, 0x6c bytes at 0x6a4c4: category
+`LC_FocusListener`, triggers `ControlButtonUpdate`, `MouseUpdate` and
+`MouseMoved`). On the console the broker is a task of its own, started by
+the disc's `startopera`: `System/Tasks/eventbroker` (16,016 bytes).
