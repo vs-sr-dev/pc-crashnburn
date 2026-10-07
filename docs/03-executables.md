@@ -429,3 +429,47 @@ its own `putc` (0x2f208) and a dummy floating-point printer (0x2f314): the
 kernel formats and writes every character through the program's `putc`.
 The runtime does the same, calling back into the recompiled code
 (`pf_guest_call`).
+
+## The sound thread, and tasks in the 1993 kernel
+
+The last thing `InitSound` does is `CreateThread("sound service",
+priority + 10, sound_service 0x2b7c4, 0x1000)` (the lib's 0x2ec94: the
+stack from the task's own memory lists, then `CreateSizedItem(MKNODEID(1,
+5))` with `TAG_ITEM_PRI`, `TAG_ITEM_NAME`, `CREATETASK_TAG_PC`,
+`_STACKSIZE` and `_SP`). The thread opens the audio folio for itself,
+allocates a signal (kept at 0x645f4), and loops: its priority up by 20
+(0x2c2f8), `WaitSignal`, then for each of the eight voices with a request
+queued at 0x645b4 -- `ReleaseInstrument`, `DetachSample`, `AttachSample` of
+the sample the request names, `StartInstrument` with `AF_TAG_FREQUENCY`,
+the voice's `Frequency` and `Amplitude` tweaked -- and its priority back
+down (0x2c31c). So the game's sound effects reach the folio from this
+thread, at a priority above the game's, woken by its signal.
+
+What the kernel does (os_code v0.16), and the runtime now does the same
+way (`3dokit/runtime/pf_task.cpp`):
+
+* **The program's priority** is the shell's spawn priority: 100 (`spawnpri`
+  in `System/Tasks/shell`, 0x64f0; it must stay between 10 and 200). The
+  sound thread runs at 110, and at 130 while it waits.
+* **CreateTask** (0x16a54): a thread is a task with `CREATETASK_TAG_SP`; a
+  name is required; from a task that is not privileged the priority must be
+  10 to 199; the stack at least 0x80 bytes. It shares its creator's memory
+  lists (each of which the kernel gives a semaphore), starts with the
+  eight system signals, `sl` at its stack's base + 0x80, `r0`/`r1` (and
+  `r5`/`r6`) from `_ARGC`/`_ARGP`, `r9` (and `r7`) from `_BASE`, and returns
+  to 0x168fc, which deletes it.
+* **Signals**: `AllocSignal(0)` takes the highest free bit from bit 30 down
+  (the thread's is 0x40000000); `WaitSignal` always waits for `SIGF_ABORT`
+  too, and returns and clears the bits that came; `SendSignal` refuses the
+  system's bits from a task that is not privileged.
+* **The switch** (0x104fc, as any SWI returns): with
+  `kb_PleaseReschedule` set and a task ready, the current task goes on if
+  its priority is above the ready queue's head, else joins the queue behind
+  its equals. A signal to a waiting task of higher priority, `Yield`, and a
+  task lowering its own priority set the flag. CreateTask sets it only when
+  the creator's priority is *above* the new task's, which changes nothing:
+  a higher-priority thread waits for the next quantum tick. The runtime,
+  without a timer yet, switches to it as the call returns.
+* **The kernel's lists in guest memory** (`kb_TaskReadyQ`, `kb_TaskWaitQ`)
+  are kept by the runtime on the host side; `kb_CurrentTask` is kept
+  right, as the game reads it.

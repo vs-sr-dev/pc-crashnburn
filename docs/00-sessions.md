@@ -116,3 +116,32 @@
 * **Where the run stops**: `Initing Sounds and Music`, the audio folio
   opened, and its first call, `LoadInsTemplate` of `mixer8x2.dsp`: the
   sound is next. Immercenary's `p` runs on to its 113th call.
+
+## Session 6 (2026-10-07) — the sound's set-up, and the first thread
+
+* **The audio folio, read** (`03-executables.md`): AUDIOFOLIO V20.19
+  (5 September 1993) -- its tags, node database, 42 vectors, 32 SWIs run
+  backwards, its item routines, and every call the game's `InitSound`
+  makes: four templates loaded from the disc, the `mixer8x2` mixer, eight
+  voices (`sampler` and `varmono8`) with their knobs and gains, each
+  connected to the mixer, the mixer started, 59 empty samples. 3dokit now
+  makes these items the same way, without the DSP: every value the folio
+  would write to it is kept for a native mixer. A knob's calculation types
+  went into `3dokit.dsp`.
+* **The kernel's `vfprintf`** writes through the program's own `putc`, as
+  the 1993 C library's printf core does: the runtime calls back into the
+  recompiled code. OMF2097's `LaunchMe` now prints its banner and stops
+  at its 36th call.
+* **The first thread**: the game's "sound service", which waits for its
+  signal at a priority above the game's and then drives the voices.
+  CreateTask's thread, signals, `SetItemPri` and the kernel's switch read
+  in os_code, and the runtime runs each task on a host thread of its own,
+  one at a time; the program runs at the shell's spawn priority, 100. The
+  1993 CreateTask's reschedule test is the wrong way round (a new
+  higher-priority thread waits for the quantum tick).
+* **Checks**: the battery's 51 outputs byte-identical across the kit's
+  change; the self-test; `pfcheck`'s six memory runs and eleven Graphics
+  replays clean from the new boot; Immercenary's `p` unchanged.
+* **Where the run stops**: the game's 218th call, `OwnAudioClock`: the
+  audio clock, then the File folio's streams (`CNB/Glue/Chars.bin`). Time
+  is next.

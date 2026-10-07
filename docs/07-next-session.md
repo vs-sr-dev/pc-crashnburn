@@ -1,109 +1,111 @@
-# Next session: the sound
+# Next session: time, and the File folio's streams
 
 Where things stand: the translator is whole (`09-recompiler.md`), and on
-3dokit's Portfolio runtime `launchme` boots, prints `...cnb...`, opens the
-Graphics folio, gets its memory from the OS's memory lists, makes its two
-screens as the 1993 GRAPHIX makes them (checked by replaying each call on
-the folio's own code), opens the SPORT device, clears both screens with it
-(`03-executables.md`, "The screens" and "Devices and IO"), prints
-`Initing Sounds and Music`, opens the audio folio and stops at the first
-call not implemented: **audio -4 `LoadInsTemplate`**. Phase 4 of
-`06-attack-plan.md` goes on into phase 6's first half: the audio folio's
-calls, in the order the game makes them.
+3dokit's Portfolio runtime `launchme` boots, makes its two screens as the
+1993 GRAPHIX makes them, clears them with the SPORT device, builds its
+whole mixer as the 1993 audio folio makes it (four templates from the
+disc, the mixer, eight voices with their knobs and gains, 59 samples:
+`03-executables.md`, "The sound's set-up"), and starts its sound thread,
+which runs on a host thread of its own, allocates its signal, raises its
+priority and waits (`03-executables.md`, "The sound thread"). The game
+then stops at its 218th call, the first not implemented: **audio -76
+`OwnAudioClock`**. What follows asks for time, then files.
 
 ```sh
 python -m 3dokit.recomp --out build/recomp launchme=build/disc/launchme --optest
 cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
 ninja -C build/recomp-build                 # with C:\msys64\mingw64\bin on the path
-build/recomp-build/pfboot build/disc/launchme [--trace 2] [--lenient] [--max-calls N]
+build/recomp-build/pfboot build/disc/launchme [--trace 2] [--lenient] [--max-calls N] [--disc DIR]
 build/recomp-build/pfboot build/disc/launchme --snap N DIR      # the N-th OS call, before and after
 python -m 3dokit.pfcheck build/disc/System/Kernel/os_code DIR... --graphix build/disc/System/Folios/GRAPHIX
-python -m 3dokit.aif --decompress build/disc/System/Folios/AUDIOFOLIO audiofolio.bin
-python -m 3dokit.aif --decompress build/disc/System/Kernel/os_code os_code.bin   # linked at 0x10000
+python -m 3dokit.aif --decompress build/disc/System/Folios/AUDIOFOLIO audiofolio.bin   # linked at 0
+python -m 3dokit.aif --decompress build/disc/System/Kernel/os_code os_code.bin         # linked at 0x10000
 ```
 
 ## The calls, in the order the game makes them (`--lenient` preview)
 
-1. Up to the SPORT device and the two clears -- done (calls 1 to 28).
-2. `FindItem(MKNODEID(1, 4), "audio")`, `OpenItem`, `LookupItem`.
-3. **`LoadInsTemplate`** (audio -4) of `system/audio/dsp/mixer8x2.dsp`,
-   `varmono8.dsp`, `sampler.dsp`, `dcsqxdhalfmono.dsp` (0x2b8fc..0x2b930,
-   the names at 0x2ba20..): where the run stops. The four instruments the
-   game names (`03-executables.md`); the `.dsp` files are what `3dokit.dsp`
-   already reads and verifies.
-4. `AllocInstrument` (audio -8) of the mixer, then per voice
-   `sprintf("LeftGain%d")` / `"RightGain%d"` through **Kernel -84
-   `VFPRINTF`** (OMF2097's `LaunchMe` stops there too), `GrabKnob` (audio
-   -16) and `TweakKnob` (SWI 0x40000) twice, and `AllocInstrument` of the
-   voice: eight times; then `StartInstrument` (SWI 0x40001).
-5. `CreateSizedItem(MKNODEID(4, 4), NULL)`: an audio item of type 4,
-   `AUDIO_SAMPLE_NODE` by the 1.2 header -- to be checked against the
-   1993 folio. The runtime's `CreateSizedItem` stops on it.
+1. Up to the sound thread's `WaitSignal` -- done (calls 1 to 217).
+2. **The audio clock** (0x2c278): `OwnAudioClock` (audio -76),
+   `GetAudioRate` (-60), `SetAudioRate` (SWI 0xf; the preview shows
+   0x800000 as its second argument). Read them in AUDIOFOLIO
+   (`03-executables.md` has its tables: vectors at 0xbfa4, slot -4 last;
+   SWI n at 0xbf24 + 4 * (31 - n)); the clock is the folio's timer, and
+   `SleepUntilTime`/`GetAudioTime` follow it later.
+3. `FindItem(MKNODEID(1, 10), "eventbroker")`: a message port. The
+   runtime has none and returns NOTFOUND, and the game goes on; on the
+   console the OS starts `System/Tasks/eventbroker` (on this disc), so the
+   game finds it there -- the controller probably comes through it. To
+   be read before input.
+4. `AllocMemFromMemLists` of 0x48000 bytes, `FindItem`/`OpenItem` of the
+   File folio, then **File -4 `OpenDiskStream`** of thirteen sound effects
+   (`CNBSFX/gun.sfx` ... `engine1.sfx`, 0x64338 on, from `LoadSFX`), then
+   `Loading two universal graphics files` and `CNB/Glue/Chars.bin`
+   (`BAD READ` and `InitHardare failed` in the preview, where every call
+   returns 0). The disc's files are reachable now (`pf_host_path`): the
+   File folio's streams are 1993 code too (`System/Kernel/os_code`? the
+   File folio is not among `System/Folios` -- find where it lives first).
 
-## The audio folio
+## Time
 
-* `System/Folios/AUDIOFOLIO` unpacks with its own decompressor (session
-  4). Read it as GRAPHIX was read: its tags (node database, vectors, SWI
-  table, `CREATEFOLIO_TAG_ITEM`), its start, then each call the game makes.
-* The game reaches it by vectors (12 slots) and by SWIs (folio 4, 10 entry
-  points: `03-executables.md`). Its items (templates, instruments, knobs,
-  samples) are what the game holds; what it reads of them decides how much
-  of their structure must be the folio's.
-* `pfcheck --graphix` is GRAPHIX-only. The same replay on AUDIOFOLIO needs
-  its glue table, its words checked, and the items it makes stood in for
-  the runtime's way: worth generalising (a folio's description, not a
-  second copy) when the audio calls start to be written.
-* What it cannot do here: the DSP. The instruments are reimplemented by
-  name as native mixers (`06-attack-plan.md`); for this phase it is enough
-  that the items, knobs and their values are right, and nothing plays.
+Nothing in the runtime advances yet. What will need it, all at once:
+the audio clock and `SleepUntilTime`; the `timer` device (Immercenary's
+`p` asks for it at its 18th call); the vertical blank the SPORT copies
+wait for and `DisplayScreen` pairs with; the kernel's quantum, which would
+also let equal priorities take turns. A host clock and a rule for when a
+waiting task wakes is the decision of the session; with every task
+waiting, the runtime stops with "every task waits" today.
 
 ## Keep in mind
 
 * **A Graphics call is checked by replaying it on GRAPHIX** (`pfboot --snap
-  N DIR`, then `pfcheck ... --graphix`): eleven pass byte for byte (the
-  folio's VDLs, `CreateScreenGroup`, `AddScreenGroup`, the averaging
-  calls). A new Graphics call gets the same check. Its first run caught a
-  wrong word in the runtime's VDLs.
-* **SPORT is from the SDK's documentation**, not from code: its driver is in
-  the console's ROM, not on the disc. Its copies and clones happen at once,
-  where the console waits for the vertical blank: frame pacing will have to
-  put them back at the VBL.
-* **IOReqs, SendIO, CompleteIO** are the 1993 kernel's (`03-executables.md`,
-  "Devices and IO"). A reply port, a callback, a named IOReq, an item's
-  deletion, and any other device stop with "not yet".
-* The OS's structures are the SDK headers' (`D:\Homebrew6\refs\3do-devkit\include\3dosdk`),
-  offsets from `clang -target armv4-none-eabi -S` over them (1.2 and 1.3
-  agree), each checked against the 1993 code's stores or the game's reads;
-  the 1993 folio's own node sizes come from its node database (GRAPHIX's
-  ScreenGroup and VDL are shorter than the headers').
+  N DIR`, then `pfcheck ... --graphix`); eleven pass byte for byte. The
+  audio folio's calls cannot be replayed that way: its items hold its
+  private DSP bookkeeping, which the game never reads.
+* **Tasks** (`3dokit/runtime/pf_task.cpp`): one host thread each, one
+  running at a time; a switch only where the 1993 kernel makes one at an
+  OS call (a signal to a higher-priority waiter, `Yield`, lowering one's
+  own priority, a new higher-priority thread). The program runs at 100,
+  the shell's `spawnpri`. The kernel's ready and wait lists are kept on the
+  host side; `kb_CurrentTask` in guest memory.
+* **SPORT is from the SDK's documentation**, not from code: its copies
+  happen at once, where the console waits for the vertical blank.
+* The OS's structures are the SDK headers' (`D:\Homebrew6\refs\3do-devkit\include\3dosdk`):
+  `clang -target armv4-none-eabi -c -Xclang -fdump-record-layouts` over
+  them gives every field (Task and KernelBase this session), each checked
+  against the 1993 code's stores or the game's reads; a folio's own node
+  sizes come from its node database.
 * `--lenient` is a preview, not a run to trust.
 * The oracle is Phoenix (`08-oracle.md`), for pictures and sound only.
 * Every 3dokit change: the regression battery (`aif --scan` on the three
   trees, `dsp --verify`, and on the nine programs `portfolio --sites`,
   `arm60 --check`, `recomp.discover --report` and its function list, `arm
   --names`: 51 outputs), run from the submodule's commit and from the kit,
-  compared byte for byte; the self-test; `pfcheck` (the six memory runs,
-  and the Graphics replays); Immercenary's `p` and OMF2097's `LaunchMe` on
-  `pfboot`. The battery script and OMF2097's extracted ISO live in a
-  session scratchpad: rebuild them (`3dokit.disc --extract`). Commit in the
-  kit, `git pull --ff-only` in the submodule, commit the port, record in
-  `10-3dokit.md`. `pfboot` builds for the other programs need `cmake`
-  again when the runtime gains a file.
+  compared byte for byte, when the kit's Python changes; the self-test;
+  `pfcheck` (the six memory runs, `--memtest DIR --ops 4000 --seed 1..6`,
+  and the eleven Graphics snapshots, calls 0, 8, 9, 11, 12, 14, 15, 17 to
+  20); Immercenary's `p` and OMF2097's `LaunchMe` on `pfboot`. The battery
+  script, OMF2097's extracted ISO and the other programs' `pfboot` build
+  (`rop-build`, which reruns cmake itself when `runtime.cmake` changes)
+  live in session scratchpads, outside the repositories: rebuild them if
+  gone (`3dokit.disc --extract`; the battery's list is the one above). Commit in the kit,
+  `git pull --ff-only` in the submodule, commit the port, record in
+  `10-3dokit.md`.
 * Python or C++ with backslashes in it goes through the Write or Edit
   tool, never a shell heredoc.
 
 ## Questions for the user
 
-* None open. (The console starts as Phoenix does; a button held during the
-  logo confirms the game/Preview choice before it shows: `08-oracle.md`.)
+* None open.
 
 ## Later, not next
 
+* The audio folio's playback: native mixers for `mixer8x2`, `sampler`,
+  `varmono8`, `dcsqxdhalfmono`, fed by the values the runtime keeps.
 * The emitter's speed: flags only where read, literal pools folded.
 * Ghidra's function list against discovery's (`--against`).
 * `aif --scan` does not count `os_code` (its boot header), and `python -m
   3dokit.aif` on `os_code` or `misc_code` raises instead of unwrapping:
   both could use `unwrap`, when a battery change is due anyway.
-* The kernel's own lists (`kb_Devices` and the rest) are not filled by the
-  runtime's devices; nothing has read them yet.
+* The kernel's own lists (`kb_Devices`, `kb_TaskReadyQ` and the rest) are
+  not filled by the runtime; nothing has read them yet.
 * GRAPHIX's VDLTYPE_FULL and caller-made VDLs; deleting items.

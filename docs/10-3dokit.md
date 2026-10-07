@@ -136,3 +136,17 @@ same trace; OMF2097's `LaunchMe` now prints `3DO-OMF2097 Battle MVP
 starting` through `vfprintf` and its own `putc` and stops at its 36th
 call (`FindAndOpenItem`, SWI 0x24, not yet). `launchme` makes its whole
 mixer and stops at its 211th call, creating its sound thread.
+
+| 3dokit | What |
+|---|---|
+| 596251b | `runtime/pf_task`: threads (`CreateSizedItem` of a task with `CREATETASK_TAG_SP`), `AllocSignal`, `FreeSignal`, `WaitSignal`, `SendSignal`, `Yield`, `SetItemPri` on a task, and the kernel's switch as an OS call returns, as os_code v0.16 runs them; a host thread per task, one running at a time; the program's task at the shell's spawn priority |
+| 9de0fc4 | README: the same |
+
+The battery's Python is c46c7e7's (unchanged). The self-test replays with
+0 failures. The boot now writes the program's task's priority and ready
+flag, so the six memory runs and the eleven Graphics snapshots differ
+from session 5's in those two bytes; `pfcheck` passes all seventeen (0
+results and 0 bytes differ). Immercenary's `p` and OMF2097's `LaunchMe`
+give the same traces as with 7e6feec. `launchme` starts its sound thread,
+which waits for its signal, and stops at its 218th call,
+`OwnAudioClock`.
