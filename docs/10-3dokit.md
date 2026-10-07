@@ -196,3 +196,15 @@ folio's `SetAudioItemInfo`.
 | 3dokit | What |
 |---|---|
 | 67e7693 | the `iamaduck` fill: a comment, after the earlier disc surveys (Alone in the Dark has none) |
+
+## Session 9
+
+| 3dokit | What |
+|---|---|
+| b068375 | `runtime/pf_audio`: `SetAudioItemInfo` on a sample as AUDIOFOLIO V20.19 does it (its tags, frames and bytes, loops' bounds; the base frequency from the folio's default tuning and Operamath's `MulUF16`, checked on its own code), a new sample at the folio's defaults; README |
+
+No Python changed. The self-test replays with 0 failures, the six memory
+runs and the eleven Graphics snapshots pass `pfcheck`, and the three
+programs' traces up to `launchme`'s 234th call, `p`'s and `LaunchMe`'s
+whole runs are byte-identical to 67e7693's. `launchme` takes its fourteen
+samples and stops at its 403rd call, GRAPHIX's `SetScreenColor`.

@@ -706,9 +706,64 @@ What the game does with it:
   `AF_TAG_SUSTAINEND` (0x1f, 0x20: -1 and -1; for `engine1` and `flamer`,
   12 and 13, 0 and the length -- a loop over the whole sound),
   `AF_TAG_ADDRESS` (0x24) and `AF_TAG_NUMBYTES` (0x23: the length); on an
-  error the sample is deleted. What the folio checks and derives from them
-  is still to be read.
+  error the sample is deleted. The bits (8), the rate (0x2000) and the
+  loop come from `LoadSFX`'s call (0x2ac38); the 14 samples are numbers 40
+  to 53 of the 59. All fourteen are taken (below): 1,098 to 9,362 frames
+  of 8 bits at 8,192 Hz, `engine1` and `flamer` looped whole.
 * **`InitHardware`** then reads `$exdir/CNB/Glue/Chars.bin` and `Plate.3do`
   (0x2d3c4, unnamed library code past `SleepTask`, through the streams), and
   `CDIO_OpenAFile` (0x3070) opens `$boot/bigfile` and makes eight IOReqs on
-  it, whose reads the game polls with `LookupItem` until done.
+  it, whose reads the game polls with `LookupItem` until done: the first,
+  `CMD_READ` of the file's first 2 KB into 0x65140.
+* Then a timer and a SPORT IOReq of its own, two SPORT requests (0x13, the
+  screen-clearing one) waited for over two blanks, a 153,636-byte
+  "BackPic" from VRAM's bank 2 (kprintf), a SPORT and a timer request --
+  and `SetScreenColor`, the 403rd call.
+
+What the folio does with a sample's info (AUDIOFOLIO V20.19; the runtime
+now does the same, `3dokit/runtime/pf_audio.cpp`):
+
+* **`SetAudioItemInfo`** (SWI 0x1b, 0x120c): the folio open; the item by
+  `LocateItem` (the kernel's vector -12), of the folio's subsystem, else
+  `AF_ERR_BADITEM` -- but a number that names nothing goes on with a null
+  node and reads its type from address 9; a kernel check on the tags (see
+  below); then by node type: sample 0x347c, envelope 0x4fac, attachment
+  0x6088, tuning 0x6754; template, instrument, knob and cue
+  `AF_ERR_UNIMPLEMENTED`.
+* **A sample's tags** (0x347c, also the end of its creation), each stored
+  in the node as it comes, a bad one returning at once with what came
+  before it kept: `WIDTH` 0 to 2, `CHANNELS` 1 to 255, `NUMBITS` 1 to 32
+  (the width then `(bits + 7) >> 3`) -- each means the frames are counted
+  again from the bytes; `FRAMES` sets the bytes, `NUMBYTES` the frames,
+  and given both they must agree (`AF_ERR_BADTAGVAL`); `FRAMES`,
+  `NUMBYTES` and `ADDRESS` are `AF_ERR_SECURITY` on a delay line's memory
+  (the node's flags, bit 1); `BASENOTE`, `DETUNE`, the note and velocity
+  ranges, the loops, the compression's ratio and type stored; `NAME`,
+  `SAMPLE` and `DELAY_LINE` passed over; any other tag `AF_ERR_BADTAG`. A
+  frame is channels times width bytes, divided by the compression ratio
+  (0x9898, 0x98d4). A sustain or release loop whose start is above 0 must
+  not start after its end nor end past the last frame
+  (`AF_ERR_OUTOFRANGE`) -- so the game's loops from frame 0 are never
+  checked.
+* **The base frequency** (0x396c), again whenever `BASENOTE` or
+  `SAMPLE_RATE` comes: the note's frequency in the folio's default tuning
+  -- twelve notes an octave from note 69 at 440 Hz, the twelve at 0xc1fc
+  (0x68e8), shifted an octave at a time (0x6980; above, it stops at an
+  index of 12 or less, so notes 93, 105, ... read the word past the table,
+  a variable of the folio's) -- times `DivUF16(44100.0, rate)`, by
+  Operamath's `MulUF16` (slot -4, 0x2840: `(a * b) >> 16`, its low 32 bits;
+  3,004 cases on its own code agree). For the game's samples: 261.6 Hz
+  times 5.38, 0x058068BB.
+* **The kernel's check** (vector 40, 0x125c4, reached through the folio's
+  stub 0x250, which computes a SWI-table slot backwards past the user
+  vectors): 1 when `[p, p + n)` lies below the top of memory, else 0. The
+  folio tests its result as an Err (`< 0`), so it never refuses -- on the
+  tags, on a sample's data, at its creation.
+* **A new sample** (0x3a3c): the kernel's item tags (vector 38, 0x1acf4),
+  the defaults (0x2c04: 16 bits, 2 bytes, 1 channel, note 60, notes 0 to
+  127, velocities 0 to 127, no loops (-1), ratio 1, 44,100 Hz), a first
+  look for `SAMPLE` (another sample's 0x74 bytes copied) and `DELAY_LINE`
+  (memory of the folio's), its frames from its bytes, the tags as above,
+  an empty "SampleRefs" list, the folio's "AudioSamples" list (+0x31c),
+  and the base frequency. The runtime keeps the info on the host side, as
+  for the other audio items; the lists are not made.
