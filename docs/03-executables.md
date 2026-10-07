@@ -356,3 +356,76 @@ by the runtime (`3dokit/runtime/pf_io.cpp`):
   colour (`InitClearPage` allocates 4 KB of `VRAM|CEL` and aligns down),
   CLONEd over the whole bitmap: 153,600 bytes from 0x200000 for the first
   screen. It clears both screens this way before `InitSoundsAndMusic`.
+
+## The sound's set-up, read in AUDIOFOLIO
+
+`InitSound` (0x2b8d4, from `InitSoundsAndMusic`) builds the game's whole
+mixer before anything plays, and the runtime now makes every item of it
+as the 1993 folio does (`3dokit/runtime/pf_audio.cpp`):
+
+* **Four templates**: `LoadInsTemplate` of `mixer8x2`, `varmono8`,
+  `sampler` and `dcsqxdhalfmono` (`system/audio/dsp/...`, from the
+  current directory), kept at 0x64604, 0x64608, 0x6460c, 0x64614.
+  `dcsqxdhalfmono` (SDX2-compressed sound) is not instanced here.
+* **The mixer**: `AllocInstrument(mixer8x2, 0)`, priority 0, at 0x64610.
+* **Eight voices**, 7 down to 0, each a 40-byte record from 0x6a294: the
+  mixer's `LeftGain%d` and `RightGain%d` grabbed (`sprintf` into a stack
+  buffer) and tweaked from a table at 0x64574 (two words a voice); then
+  the voice's instrument at priority 100 -- `sampler` for 7 to 4,
+  `varmono8` for 3 to 0 -- its `Frequency` and `Amplitude` knobs, and
+  `ConnectInstruments(voice, "Output", mixer, "Input%d")`. The gains:
+  voices 7 and 6 0x8c3 both sides, 5 right only, 4 left only, 3 to 0
+  0x13d5, 0x2705, 0x14e5, 0x1445 both sides.
+* `StartInstrument(mixer, NULL)`; then 59 empty samples
+  (`CreateSizedItem(MKNODEID(4, 4), NULL)`, `AUDIO_SAMPLE_NODE`) into
+  0x6a3d4; then `CreateThread("sound service", sound_service 0x2b7c4,
+  stack 0x1000)` at the task's priority + 10 -- where the run stops.
+
+What the folio does with them (V20.19, built 5 September 1993):
+
+* **Its shape**: `CreateItem(MKNODEID(KERNELNODE, FOLIONODE))` at 0xc28
+  with tags at 0xc070: node 0x348 bytes, 42 vectors (table 0xbfa4, slot -4
+  last), 32 SWIs (table 0xbf24, SWI n at entry 31 - n: run backwards, as
+  the kernel's), node type 4, a node database at 0xc04c (template 0x54,
+  instrument 0x58, knob 0x34, sample 0x98, cue 0x38, envelope 0x74,
+  attachment 0x54, tuning 0x34 bytes, all with `NODE_ITEMVALID |
+  NODE_NAMEVALID`), and item routines (0x3c of the folio) whose
+  `ir_Create` (0x1048) dispatches by node type.
+* **Most calls first ask `ItemOpened(task, folio)`** (Kernel -128) and
+  return `AF_ERR_AUDIOCLOSED` when the task has not opened the folio.
+  `TweakKnob` and `ConnectInstruments` do not.
+* **A template** is parsed in the caller's task (`iffParseFile`, with
+  a form handler, 0x1854, for `3INS`, `DSPP`, `ATNV` and `ATSM`) and made
+  by `CreateItem(..., {AF_TAG_TEMPLATE, the parsed DSPP})` (0x230c).
+  **An instrument** (0x2104): `AF_TAG_TEMPLATE`, `AF_TAG_PRIORITY` (0 to
+  255, default 100, the node's `n_Priority`), `AF_TAG_SET_FLAGS`; every
+  knob is written its default raw (0x8cf0), and the instrument grabs its
+  own `Frequency` and `Amplitude` if it has them, for `StartInstrument`'s
+  tags. **A knob** (0x2684): `AF_TAG_NAME` (required, else
+  `AF_ERR_BADNAME`) and `AF_TAG_INSTRUMENT`; the name is matched against
+  the template's DKNB records with `strncmp` over 32 characters.
+* **`TweakKnob`** (SWI 0, 0x27c8, and the tweak at 0x9780): the value
+  through each target's calculation (0 as is, 1 `v*a+b`, 2 `v*a/b`, 3 `v
+  / 44100`), the first result clamped to the knob's range, written to the
+  DSP. `TweakRawKnob` (SWI 0x11) skips the calculation. Recorded in
+  `3dokit/dsp.py`; every knob of the game's four instruments is type 0.
+* **`ConnectInstruments`** (SWI 8, 0x8018): the source's variable by
+  name, the destination's variable or else knob, and the destination's
+  code relocated to read the source's: the DSP's own wiring.
+* **The DSP is not reproduced.** The runtime keeps, per instrument, every
+  value the folio would write to a knob resource, and its connections;
+  `StartInstrument` records the start. Nothing plays: the instruments
+  are to be native mixers by name (`06-attack-plan.md`).
+* **No replay on the folio's code** as for GRAPHIX: the folio's items
+  hold its own DSP bookkeeping (resource maps, code images, the DSP's
+  memory), which is private (no SDK header) and which the game never
+  reads -- it holds item numbers. The runtime keeps the ItemNodes as the
+  folio's (sizes and flags from its node database) and the rest on the
+  host side.
+
+`sprintf` (the 1993 lib's, 0x2ead4) builds a FILE on the stack and calls
+**Kernel -84 `vfprintf`** (os_code 0x1a184, Norcroft's printf core) with
+its own `putc` (0x2f208) and a dummy floating-point printer (0x2f314): the
+kernel formats and writes every character through the program's `putc`.
+The runtime does the same, calling back into the recompiled code
+(`pf_guest_call`).

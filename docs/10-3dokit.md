@@ -117,3 +117,22 @@ On `pfboot`, Immercenary's `p` now runs to its 113th call (`DeleteItem`:
 the `timer` device it asks for at its 18th does not exist yet, and it
 sends 47 IOReqs that were never made); OMF2097's `LaunchMe` still stops
 at its 2nd (`VFPRINTF`).
+
+## Session 6
+
+| 3dokit | What |
+|---|---|
+| ef39953 | `dsp`: a knob record's targets (resource, calculation type, two operands), as the 1993 audio folio reads and applies them; `--verify` checks each record is its targets long and writes knob resources |
+| 7e6feec | `runtime/pf_audio`: the audio folio's templates, instruments, knobs and samples as AUDIOFOLIO V20.19 makes and checks them (`LoadInsTemplate`, `AllocInstrument`, `GrabKnob`, `TweakKnob`, `TweakRawKnob`, `StartInstrument`, `ConnectInstruments`, an empty sample), without the DSP; `CreateSizedItem` to a folio's own creation routine; the kernel's `vfprintf` through the program's `putc` (`pf_guest_call`) and `ItemOpened`; the disc as a host directory, names matched without case (`pfboot --disc`) |
+| c46c7e7 | README: the same |
+
+Checked with the battery on the nine programs and the three trees, run
+from the submodule's 70c0567 and from the new kit: all 51 outputs
+byte-identical (`dsp --verify`'s new checks pass on all 651 knobs). The
+self-test replays with 0 failures; the six memory runs and the eleven
+Graphics snapshots from the new boot are byte-identical to session 5's,
+which `pfcheck` passed. Immercenary's `p` runs to its 113th call with the
+same trace; OMF2097's `LaunchMe` now prints `3DO-OMF2097 Battle MVP
+starting` through `vfprintf` and its own `putc` and stops at its 36th
+call (`FindAndOpenItem`, SWI 0x24, not yet). `launchme` makes its whole
+mixer and stops at its 211th call, creating its sound thread.
