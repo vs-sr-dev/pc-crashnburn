@@ -150,3 +150,20 @@ results and 0 bytes differ). Immercenary's `p` and OMF2097's `LaunchMe`
 give the same traces as with 7e6feec. `launchme` starts its sound thread,
 which waits for its signal, and stops at its 218th call,
 `OwnAudioClock`.
+
+## Session 7
+
+| 3dokit | What |
+|---|---|
+| 5587c75 | `runtime/pf_time` and the devices: the guest's clock (a fixed amount per safe point, a jump to the next event when every task waits), the vertical blank (GRAPHIX's `gf_VBLNumber`, SPORT's copies at the blank, the timer device's vertical-blank unit), a queued request clearing `IO_QUICK`, the audio clock as AUDIOFOLIO V20.19 keeps it (`OwnAudioClock`, `DisownAudioClock`, `Get`/`SetAudioRate`, `Get`/`SetAudioDuration`, `GetAudioTime`, Operamath's `DivUF16`), semaphores (`LockItem`, `UnlockItem`) as os_code makes them; README |
+
+No Python changed, so the battery's outputs are c46c7e7's. The self-test
+replays with 0 failures; the six memory runs and the eleven Graphics
+snapshots from the new boot pass `pfcheck` (0 results and 0 bytes differ;
+the boot now makes three more items -- the audio clock's two semaphores and
+the timer device -- so item numbers and the OS's addresses move up).
+OMF2097's `LaunchMe` makes the same 36 calls. Immercenary's `p` now finds
+the timer and waits out 47 vertical blanks (0.78 s) before stopping at its
+351st call (`DeleteItem`, not yet). `launchme` clears its screens at the
+first two blanks, sets its audio clock and stops at its 234th call, the
+File folio's `OpenDiskStream`.

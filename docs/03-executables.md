@@ -473,3 +473,91 @@ way (`3dokit/runtime/pf_task.cpp`):
 * **The kernel's lists in guest memory** (`kb_TaskReadyQ`, `kb_TaskWaitQ`)
   are kept by the runtime on the host side; `kb_CurrentTask` is kept
   right, as the game reads it.
+
+## Time: what the game asks of it, and what the 1993 OS does
+
+What the game times, and how:
+
+* **Its frame** waits for the vertical blank: `main` gets a timer IOReq
+  (the lib's `GetVBLIOReq`, 0x2d710: the `timer` device opened, an IOReq
+  made) into its globals (+0x29c), and `TopOfFrame` calls `WaitVBL(ior,
+  1)` (0xd08; the lib's 0x2da30: `TIMERCMD_DELAY` on unit 0, `ioi_Offset`
+  1, `SendIO`, `WaitIO`). Four more `WaitVBL` calls sit at 0x1f378,
+  0x1f4dc, 0x2291c and 0x22a04.
+* **Its sound** runs on the audio clock: `InitTimer` (0x2c254) takes the
+  clock (`OwnAudioClock`) and keeps its owner and the old rate
+  (`GetAudioRate`) at 0x64630, then sets 128 Hz (`SetAudioRate(owner,
+  0x800000)`); `UninitTimer` (0x2c2ac) puts the rate back and lets the
+  clock go. `GetAudioTime` (through 0x2c2ec) is read by `ChannelPlaying`,
+  `PlayChannel`, `SetSemaphore` and `_MEDPlayer`; `SleepTask` (0x2d2f4,
+  from `_MEDPlayer`) is `SleepUntilTime` on a cue kept at 0x64638, which
+  `_MEDPlayer` makes as it starts (0x2bce0: `CreateSizedItem(MKNODEID(4,
+  5), NULL)`, an `AUDIO_CUE_NODE`).
+* `SetSemaphore`/`ClearSemaphore` (0x2c38c, 0x2c400) are the game's own:
+  a byte counted up and down with its priority raised around it, and
+  `Yield` while another holds it.
+* The game reads none of the OS's clocks in memory.
+
+What the OS does, read in its code (and, for the ROM's devices, in the
+SDK's documentation):
+
+* **The vertical blank**: GRAPHIX's FIRQ (0x50b4, "Graphics FIRQ",
+  interrupt 1, priority 250) adds 1 to `gf_VBLNumber` (+0x74), setting
+  bit 0 in an odd field (bit 11 of CLIO's 0x3400034), and writes the
+  field's VDL into the display link. GRAPHIX's own wait (0x510c) spins
+  until `gf_VBLNumber` changes.
+* **The timer device** is not on the disc: the 1993 kernel names no
+  `timer` (only "Error starting timers"), and neither does `misc_code` (an
+  "Operator"). The SDK ("The Timer Device"): unit 0 counts vertical blanks,
+  unit 1 microseconds; `TIMERCMD_DELAY` (3) on unit 0 completes when the
+  count has gone up by `ioi_Offset` -- "if you ask the timer to wait for 1
+  vblank while the beam is near the trigger location, the I/O request will
+  be returned in less than 1/60th" -- and `TIMERCMD_DELAYUNTIL` (4) when it
+  reaches `ioi_Offset`.
+* **SPORT's copies and clones wait for the vertical blank** ("The copy
+  operation always occurs during vertical blanking"); `FLASHWRITE_CMD` does
+  not.
+* **Quick IO**: the lib's `DoIO` (0x2e7c4) sets `IO_QUICK` and its
+  `WaitIO` (0x2e74c) returns at once while `io_Flags` has `IO_QUICK`. The
+  kernel's `SendIO` clears `IO_DONE|IO_QUICK`, sets `IO_QUICK` back if
+  asked, and jumps to the driver (0x142b4 to 0x142e4), whose result is
+  `SendIO`'s; `CompleteIO` (0x141c0) tells no one while `IO_QUICK` is set.
+  So a driver that queues a request clears `IO_QUICK` itself.
+* **The audio clock** (AUDIOFOLIO): the DSP counts sample frames down
+  from `head.dsp`'s `CountDown` knob and interrupts at 0; the folio's FIRQ
+  ("AudioTimer", interrupt 11, 0x3e90) adds 1 to the time (folio +0x9c)
+  and, when the earliest wake-up (+0xa0, flag +0xac) has come, signals the
+  audio daemon, which runs its timer list (+0xb0; 0x460c: every node whose
+  time is at or before now, unsigned, is taken off and its function called
+  -- a cue's (0x4600) signals its owner). The folio's start (0x3f08) makes
+  the semaphores "AFTimerListSem4" (+0xd0) and "AFTimerRateSem4" (+0xd8),
+  the daemon (SWI 0xe, 0x4550) grabs `CountDown` (+0xd4) and sets 240 Hz.
+  `OwnAudioClock` (-76, 0x448c) is `LockItem` of the rate semaphore without
+  waiting: its item, else `AF_ERR_INUSE`; `DisownAudioClock` (-80) unlocks
+  it. `SetAudioRate` (SWI 0xf, 0x43fc) turns a rate into a duration, `(DivUF16(44100.0,
+  rate) + 0x8000) >> 16` -- 240 Hz is 184 frames, 128 Hz 345 -- and
+  `SetAudioDuration` (SWI 0x10, 0x435c) wants the owner (else
+  `AF_ERR_INUSE`) and 44 to 32,767 frames (else `AF_ERR_OUTOFRANGE`), then
+  tweaks `CountDown` and keeps the duration (+0xe0). `GetAudioRate` (-60)
+  is `DivUF16(44100.0, duration)`: 0x00EFAC85 at 184 frames;
+  `GetAudioDuration` (-64) and `GetAudioTime` (-168) read the node.
+  `DivUF16` is Operamath's (its slot -12, 0x2420; the folio's 0xb7c0
+  reaches it through slot -16, `DivRemUF16`): `(n << 16) / d`, or
+  0xFFFFFFFF when that does not fit or `d` is 0 -- 3,000 random cases run
+  on its own code agree.
+* **Semaphores** (os_code): made at 0x13960 (the waiters' list "Semaphore
+  WaitQ" at +0x30, `sem_Owner` -1), `LockItem` (SWI 7, 0x13ad0 and
+  0x139c8: `sem_bit` +0x24 swapped, `sem_NestCnt` +0x2c, a wait node on
+  the kernel's stack with a signal of the task's own), `UnlockItem` (SWI 6,
+  0x13b90 and 0x13b30: the owner only; at 0 the first waiter is signalled
+  and owns it).
+* **The kernel's quantum** is a FIRQ of its own ("kernel quanta", handler
+  0x1780c, on a timer whose number KernelBase keeps): equal priorities take
+  turns at its tick. Nothing in this game needs it yet.
+
+How 3dokit's runtime does it (`3dokit/runtime/pf_time.cpp` and the
+devices): the guest's clock is its own, moved on 1 us per safe point of
+the recompiled code (an estimate of the ARM60's pace) and jumping ahead
+when every task waits, so every run gives the same trace. The boot clears
+its two screens in two fields (the SPORT copies now wait for the blank),
+and `InitTimer` sets the audio clock to 345 frames a tick.
