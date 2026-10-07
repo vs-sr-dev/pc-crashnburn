@@ -314,6 +314,49 @@ the folio's own code (`pfboot --snap`, `python -m 3dokit.pfcheck
   kept at 0x6495c and 0x64960, the device at 0x64964. Without it
   `InitHardware` fails (`InitHardare failed`) and `main` tears down.
 
+## The screen's colours and the screen shown, read in GRAPHIX
+
+The runtime does each the same way (`3dokit/runtime/pf_graphics.cpp`), and
+`pfcheck --graphix` replays them on the folio: `SetScreenColor` changing a
+colour (call 2090), on the background (2093) and on item 0 (615), and
+`DisplayScreen` (616, 634) -- every result and every byte the folio's.
+
+* **The vectors** are SWI glue: -80 `SetScreenColor` SWI 9 (0x1fa0), -84
+  `ResetScreenColors` SWI 10 (0x20e8), -88 `SetScreenColors` SWI 13
+  (0x1fc8), -160 `DisplayScreen` SWI 45 (0x307c). The SWI table runs
+  backwards from 0x5368 (SWI n at 0x5368 - 4n), right below the 49 user
+  vectors.
+* **`SetScreenColors`** (`SetScreenColor` is it with one entry, on the
+  SWI's stack): `CheckItem` of the screen (else `GRAFERR_BADITEM`), owned
+  or opened (else `GRAFERR_NOTOWNER`), `scr_VDLType` 4 (else
+  `GRAFERR_BADVDLTYPE`); per entry, the index (top byte) at most 32 (else
+  `GRAFERR_INDEXRANGE`, what came before kept) and its colour into the
+  screen VDL's first entry from its sixth word (+0x14 + 4 * index); index
+  32 is the background word, `0xE0000000 |` the colour. Only the first
+  entry -- one bitmap's -- is written. `ResetScreenColors`: the grey ramp,
+  entry by entry through SWI 9's handler.
+* **`DisplayScreen`**: both screens `CheckItem`'d (the second 0: the first
+  again), then each owned or opened (`GRAFERR_NOTOWNER`); the first's group
+  pointer (0: `GRAFERR_INTERNALERROR`) must name an item still
+  (`GRAFERR_SGNOTINUSE` -- whether `AddScreenGroup` was called is not
+  asked), the second's the same group (`GRAFERR_MIXEDSCREENS`); then the
+  first screen's `vdl_DataPtr` into `gf_CurrentVDLEven` (+0xac) and the
+  second's into `gf_CurrentVDLOdd` (+0xb0) -- the data, though the header
+  calls them `VDL*`. The FIRQ (0x50b4) writes one of them into the
+  display link at each blank, by the field's parity.
+* **What the game does with them**: `FadeToBlack1` (0x229c8) steps the
+  32 colours and the background of both screens (items 12 and 15) down,
+  then sets item 0's background -- no screen: `GRAFERR_BADITEM`, ignored;
+  `DisplayScreen(12, 0)` (0xf2c), and `DoLogoScreen` (0x20ef0) loads
+  `IntroScreen.3DO` (2,472 bytes of "dialog graphics", into VRAM bank 2),
+  copies the 153,636-byte `BackPic` onto the screen (SPORT), shows it
+  again and `FadeFromBlack1` (0x228d8) brings the 32 colours up in 20
+  steps of a blank each. `BackPic` is still empty, so the screen is black
+  (`pfboot --frames`: one black field throughout). Then it sets up the
+  movie -- `FMV_PadSize = 8820`, `CDIO_OpenAFile(EXTRA.1)`, a 44,100-byte
+  sound buffer -- and re-plugs the voices: `DisconnectInstruments`, the
+  2,262nd call, where the run stops.
+
 ## Devices and IO, read in the 1993 kernel
 
 What the game's SPORT calls need, read in `os_code` and done the same way

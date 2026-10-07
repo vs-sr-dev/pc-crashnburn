@@ -208,3 +208,16 @@ runs and the eleven Graphics snapshots pass `pfcheck`, and the three
 programs' traces up to `launchme`'s 234th call, `p`'s and `LaunchMe`'s
 whole runs are byte-identical to 67e7693's. `launchme` takes its fourteen
 samples and stops at its 403rd call, GRAPHIX's `SetScreenColor`.
+
+| 3dokit | What |
+|---|---|
+| c985e36 | `runtime/pf_graphics`: `SetScreenColor`, `SetScreenColors`, `ResetScreenColors`, `DisplayScreen` as GRAPHIX does them, the blank linking the field's VDL in; `pfboot --frames DIR` (what the VDLs show, a PPM per change); a stop inside an OS call names the call's site, not `lr`; README |
+
+The traces up to `launchme`'s 234th call and `p`'s and `LaunchMe`'s whole
+runs are 67e7693's but for the stop's last line, which now names the
+call's own site (`p` 0x26918 for 0x2691c, `LaunchMe` 0x15474 for 0x16988 --
+its `lr` there was a register of its own). Self-test 0 failures; the six
+memory runs and the eleven Graphics snapshots pass, and five new ones
+(calls 615, 616, 634, 2090, 2093) replay byte for byte on GRAPHIX.
+`launchme` runs to its 2,262nd call, the audio folio's
+`DisconnectInstruments`.
