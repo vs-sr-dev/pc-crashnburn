@@ -810,3 +810,28 @@ now does the same, `3dokit/runtime/pf_audio.cpp`):
   an empty "SampleRefs" list, the folio's "AudioSamples" list (+0x31c),
   and the base frequency. The runtime keeps the info on the host side, as
   for the other audio items; the lists are not made.
+* **Deleting** (the kernel's DeleteItem, 0x1379c, calls the folio's
+  `ir_Delete` and frees the item only on 0): `ir_Delete` (0x1170) goes by
+  node type -- template 0x24b0, instrument 0x2294, knob 0x27a8, sample
+  0x3d18, cue 0x4798, envelope 0x57d0, attachment 0x61cc, tuning 0x6844. A
+  knob is taken off its list (`RemNode`). An instrument deletes its
+  attachments (the list at +0x34), then (0x8dc4) is stopped, and every
+  item grabbed for each of its template's knobs is deleted as by its owner
+  (the kernel's vector 34, 0x1387c) -- the results unread --, its DSP
+  resources and memory freed, and it leaves its template's list. The 1993
+  lib's `FreeInstrument` and `ReleaseKnob` are plain `DeleteItem`.
+* **`DisconnectInstruments`** (SWI 0xc, 0x1cac, worker 0x8130): both
+  instruments (`CheckItem`, else `AF_ERR_BADITEM`), the names found as
+  `ConnectInstruments` finds them (else `AF_ERR_BADNAME`); then every
+  relocation of the destination's code that reads that resource is set
+  back to 0xc000 -- whatever fed it, and whether anything did.
+* **What the game does for its movie** (`SwapInDCSQXD`, 0x2bd0c): the
+  voice-0 gains tweaked down to 0 in steps of 100, `DisconnectInstruments`
+  of voice 0's `sampler` from the mixer, its two knobs and the instrument
+  deleted, `dcsqxdhalfmono` allocated in its place (priority 100), its
+  `Amplitude` grabbed and set to 0, and it connected to the mixer. Then
+  (0x28e8) a sample over the 44,100-byte sound buffer at 0x2ba1cc: tags
+  `ADDRESS`, `NUMBYTES` and `FRAMES` 44,100, `SAMPLE_RATE` 0x5622 (22,050
+  -- as a plain integer, where the folio expects 16.16), `CHANNELS` 1,
+  `NUMBITS` 8; and `AttachSample` of it to the new instrument, the
+  2,289th call, where the run stops.

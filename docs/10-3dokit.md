@@ -221,3 +221,12 @@ memory runs and the eleven Graphics snapshots pass, and five new ones
 (calls 615, 616, 634, 2090, 2093) replay byte for byte on GRAPHIX.
 `launchme` runs to its 2,262nd call, the audio folio's
 `DisconnectInstruments`.
+
+| 3dokit | What |
+|---|---|
+| 6ad2ac7 | `runtime`: a folio's `ir_Delete` behind the kernel's `DeleteItem` (`pf_on_delete`), the kernel's vector 34; the audio folio's knobs and instruments deleted (an instrument's knobs with it), `DisconnectInstruments`, a sample made with tags; README |
+
+The three traces are c985e36's, byte for byte (the 59 empty samples print
+nothing new); self-test 0 failures; the six memory runs and the sixteen
+Graphics snapshots pass. `launchme` runs to its 2,289th call, the audio
+folio's `AttachSample`.
