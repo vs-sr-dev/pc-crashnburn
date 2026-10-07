@@ -833,5 +833,41 @@ now does the same, `3dokit/runtime/pf_audio.cpp`):
   (0x28e8) a sample over the 44,100-byte sound buffer at 0x2ba1cc: tags
   `ADDRESS`, `NUMBYTES` and `FRAMES` 44,100, `SAMPLE_RATE` 0x5622 (22,050
   -- as a plain integer, where the folio expects 16.16), `CHANNELS` 1,
-  `NUMBITS` 8; and `AttachSample` of it to the new instrument, the
-  2,289th call, where the run stops.
+  `NUMBITS` 8; and `AttachSample` of it to the new instrument.
+* **Attachments** (`AttachSample`, -144 at 0x3e34, is `CreateItem(MKNODEID(4,
+  7), {INSTRUMENT, SAMPLE, [HOOKNAME]})`; `DetachSample`, -148, is
+  `DeleteItem`): made at 0x5d44 -- `INSTRUMENT`, `SAMPLE` (a sample, else
+  `AF_ERR_BADITEM`), `ENVELOPE`, `SET_FLAGS` (bits 0 and 1), `HOOKNAME` (a
+  copy), `START_AT` (not below 0, before the sample's last frame unless it
+  has none); on a template it joins the template's list, on an instrument
+  it goes to a hook: the instrument's FIFOs, input and output in the
+  template's order, each a 40-byte record of its private data (+0x24
+  count, +0x28 records), searched by name over 32 characters or, with no
+  name, the first (0x8804; none: `AF_ERR_NOFIFO`); an output FIFO takes
+  only a delay line's memory (0x7d68, else `AF_ERR_SECURITY`). The game's
+  lands on `dcsqxdhalfmono`'s `InFIFO`. Deleting one (0x61cc) stops its
+  instrument first if it is playing. An instrument's knobs are on its
+  node's list at +0x34 (deleted first when it is), its attachments on its
+  hooks' lists.
+* **`LinkAttachments`** (SWI 0x15, 0x63d4): both attachments (the second
+  may be 0), the second to play after the first (+0x4c); on a playing one
+  the DSP is relinked too. The game links its sound buffer to itself -- a
+  loop -- and starts the instrument (`StartInstrument`, then the
+  `Amplitude` up).
+
+## The first movie
+
+With that, `launchme` plays its first movie, the Crystal Dynamics logo
+(`EXTRA.1`), to its end: 20 seconds of guest time, 1,194 blanks, the
+game's own code decoding into its two screens while the runtime shows them
+as the VDLs say -- `pfboot --frames` writes 530 different fields: a disc
+flying past a planet in a sun's glare, then the logo (by eye, against the
+oracle's notes: the animated logo comes first; not yet set beside
+Phoenix's own pictures). The OS calls of those 20
+seconds are few kinds: 228 reads through the eight IOReqs `CDIO_OpenAFile`
+made on the movie (0xc3 to 0xca, polled with `LookupItem`), 705
+`DisplayScreen`s alternating screens 12 and 15, 218 SPORT copies and 242
+timer waits, each waited for with `WaitSignal`, a 614,400-byte buffer from
+DRAM ("Dialog graphics") given back at the end. Nothing is heard: the
+DSP is not there, and the sound buffer only fills. The run stops at its
+14,822nd call, `StopInstrument` on the movie's voice.

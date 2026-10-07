@@ -230,3 +230,13 @@ The three traces are c985e36's, byte for byte (the 59 empty samples print
 nothing new); self-test 0 failures; the six memory runs and the sixteen
 Graphics snapshots pass. `launchme` runs to its 2,289th call, the audio
 folio's `AttachSample`.
+
+| 3dokit | What |
+|---|---|
+| 5b96bc2 | `runtime/pf_audio`: attachments (`AttachSample`, `DetachSample`, an instrument's with it), `LinkAttachments`; README |
+
+`launchme`'s trace to its 234th call and `LaunchMe`'s are byte-identical;
+`p` now gets two calls further (`DetachSample(0)` is the kernel's
+BADITEM, then `UnloadSample`, not yet). Self-test 0 failures; six memory
+runs and sixteen Graphics snapshots pass. `launchme` plays its first
+movie to its end and stops at its 14,822nd call, `StopInstrument`.

@@ -215,3 +215,33 @@
   `Plate.3do`, opens `$boot/bigfile` and reads it through eight IOReqs of
   its own, and up to its 1,200th call the only other calls missing are
   GRAPHIX's `SetScreenColor` and `DisplayScreen`.
+
+## Session 9 (2026-10-07) — the samples, the screen, and the first movie
+
+* **The sound effects' samples**: `SetAudioItemInfo` read in AUDIOFOLIO --
+  a sample's tags stored as they come, frames and bytes kept in step,
+  loops bounded, the base frequency from the folio's default tuning (440
+  Hz at note 69) and Operamath's `MulUF16` (its code agrees on 3,004
+  cases). The kernel check the folio makes on its pointers returns 0 or 1,
+  which the folio tests as an Err: it never refuses. All fourteen samples
+  are taken.
+* **The screen**: GRAPHIX's `SetScreenColor(s)`, `ResetScreenColors` and
+  `DisplayScreen`, and the blank's linking of the field's VDL; replayed on
+  the folio with `pfcheck` (now sixteen Graphics snapshots, byte for byte).
+  `pfboot --frames DIR` writes what the VDLs show at each blank that
+  changes it. The game fades its screen in and out -- still black.
+* **The movie's voice**: `DisconnectInstruments`, `DeleteItem` of knobs and
+  instruments through the folio's `ir_Delete` (a new kernel hook), a sample
+  made with tags, attachments (`AttachSample`, `DetachSample`) and
+  `LinkAttachments`.
+* **The first picture**: with those, `launchme` plays the Crystal Dynamics
+  logo movie (`EXTRA.1`) to its end -- 20 seconds of guest time, its own
+  code decoding into its two screens, 530 different fields written by
+  `--frames`. Nothing is heard (no DSP).
+* A stop inside an OS call now names the call's site: compiled code uses
+  `lr` as a register too (the sound code counts with it).
+* **Checks**: the self-test; six memory runs and sixteen Graphics snapshots;
+  OMF2097 unchanged; Immercenary's `p` two calls further (to
+  `UnloadSample`).
+* **Where the run stops**: the 14,822nd call, `StopInstrument` on the
+  movie's voice, once the logo has played.
