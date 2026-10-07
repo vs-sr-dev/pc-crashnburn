@@ -282,3 +282,14 @@ the sixteen Graphics snapshots pass. With seven presses `launchme` goes
 through Select Character, the circuit, its champion's movie and the
 pre-race screen, loads the race (22 seeds on the recompiler's command
 line, `09-recompiler.md`) and stops at its first stretched cel.
+
+| 3dokit | What |
+|---|---|
+| 1c6cb66 | `runtime/pf_cel`: the projector as 3DO's patent WO 94/10644 describes it (stretched, turned, bent cels; ACW/ACCW), the origin's V and H bits, USEAV and PXOR in the pixel processor. `runtime/pf_audio`: `ReleaseInstrument`. `runtime/pf_graphics`: `SetClipOrigin`, `SetClipWidth`, `SetClipHeight`. `runtime/pf_os`, `pf_kernel`: a deleted item's node and name given back to the OS's memory. README |
+
+Only the runtime's C++ changed (no battery). The three traces are session
+11's byte for byte; self-test 0 failures; the six memory runs and the
+sixteen Graphics snapshots pass; the 2,687 fields `launchme` shows up to
+the Select Circuit screen are those of 2e68c83 byte for byte (the
+projector on square cels, the OS's memory used again). The race runs:
+before the OS's memory was given back it filled at field 53,850.

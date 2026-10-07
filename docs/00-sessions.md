@@ -298,3 +298,36 @@
   memory runs, sixteen Graphics snapshots (five renumbered).
 * **Where the run stops**: it does not; with two presses of A it reaches
   Select Character (field 4642) within 400,000 calls.
+
+## Session 12 (2026-10-07) — through the screens into the race
+
+* **The cel engine's next bits**: PRE0's BGND bit (the SDK's libraries set
+  it with the CCB's; Opera never reads it) and `LRFORM` -- the Select
+  Character portrait. Then the **projector** for stretched, turned and
+  bent cels, from 3DO's patent WO 94/10644 (the Regis unit: corners cut to
+  the integer below, rows filled up to but not including the right edge,
+  the bottom row left out, ACW/ACCW from each row's left edge); on square
+  cels it draws what the runtime drew before, pixel for pixel. `USEAV` and
+  `PXOR` in the pixel processor as Opera combines them.
+* **The audio folio's cues** (the music player's `SleepUntilTime`), read
+  in AUDIOFOLIO: the folio's timer list, `SignalAtTime`, `GetCueSignal`,
+  the clock's wake-up; and `ReleaseInstrument`.
+* **Operamath**, read: `MulManyVec3Mat33_F16` runs on MADAM's matrix engine
+  on retail consoles; the runtime computes as the engine does (Opera's
+  arithmetic), not as the folio's software fall-back rounds.
+* **GRAPHIX's clip calls**: `SetClipOrigin`, `SetClipWidth`,
+  `SetClipHeight`.
+* **The recompiler's seeds**: 22 entries only data reaches -- the objects'
+  state-machine dispatchers and handlers, a callback, the models' entries
+  into the hand-written renderer -- given on the command line
+  (`09-recompiler.md`); a scan of relocated words and literals shows the
+  rest of the candidates are data.
+* **The OS's memory given back**: a deleted item's node and name are used
+  again; without it the race filled the OS's memory at field 53,850.
+* **Checks**: the three traces byte for byte, self-test 0 failures, six
+  memory runs, sixteen Graphics snapshots; the 2,687 fields to Select
+  Circuit byte for byte against the previous build.
+* **Where the run stops**: it does not. With seven presses of A the game
+  goes through Select Character, Select Circuit, the champion's movie and
+  the pre-race screen into the race (field 7543), which runs past field
+  260,000 -- the opponents racing, the player's car standing at the start.

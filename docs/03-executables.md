@@ -1009,3 +1009,71 @@ Tournament, Options; `GlueBgnd.img`, `GameSelectScreen.3DO`), which the
 user confirms is the real game's. Left there it waits on the pad (300,000
 calls, no stop). A second A (field 4600) takes Rally: the **Select
 Character** screen at field 4642.
+
+## Through the screens to the race (session 12)
+
+**The way.** Seven presses of A (`--pad a@1300x1 --pad a@4600x1 --pad
+a@4900x1 --pad a@6000x1 --pad a@6300x1 --pad a@7300x1 --pad a@7500x1`):
+the dialog, Select Game (Rally), Select Character -- the first press there
+picks the character (the portrait and the car's spinning movie, then
+HAMMERHEAD's speed, acceleration and armour, "SELECT OTHER" and "RACE"),
+the next takes RACE --, **Select Circuit** (`CNB/Glue/CircuitSelectScreen.3DO`,
+Crash Course Circuit, its five tracks), the circuit champion's movie over
+the turning track, the **pre-race screen** (`CNB/Glue/PreRaceScreen.3DO`:
+circuit 1, track 1, 3 laps, the track record 1:44, the purses; "SEE BIOS"
+and "RACE"), and the race: the car (`CNB/carbitmaps/shark.3DO`), its
+effects, the weapons' and the rear-view mirror's graphics loaded, then the
+first frames at field 7543 -- the road and the desert textured, the sky,
+the HUD, the opponents on the minimap.
+
+**What each step asked of the OS:**
+
+* **The Select Character portrait** is an unpacked 16-bit cel taken from a
+  bitmap (`LRFORM`, its preamble in the CCB) with PRE0's BGND bit as well
+  as the CCB's -- as the SDK's own libraries set them, together.
+* **The music player's cue**: `_MEDPlayer`'s task makes an
+  `AUDIO_CUE_NODE` as the race loads and sleeps on it with
+  `SleepUntilTime`. Read in AUDIOFOLIO V20.19: a cue (0x469c) is a node of
+  the folio's timer list with a signal of its maker's; `SignalAtTime` (SWI
+  0xd, 0x41d8) puts it on the list by time (0x40f8, the kernel's
+  `UniversalInsertNode` with the folio's 0x40dc), the clock's interrupt
+  (0x3e90) wakes the folio's daemon when the earliest time has come, and the
+  daemon (0x460c) takes off every node whose time is past and calls its
+  function -- a cue's (0x4600) signals its maker. `SleepUntilTime` (-68,
+  0x42bc) is `SignalAtTime` and a `WaitSignal` of the cue's signal
+  (`GetCueSignal`, -72); a deleted cue (0x4798) gives its signal back.
+* **The 3D: Operamath's `MulManyVec3Mat33_F16`** (SWI 0x50002), on the
+  vertices. OPERAMATH (V20.27, August 1993, on the disc uncompressed) picks
+  its SWIs by KernelBase's `kb_MadamRev`: on Red (0) and Green (1) MADAMs
+  the matrix engine (0x3300600: the matrix's columns into its rows, a
+  pipeline of vectors, the results read back), on a wirewrap or an unknown
+  revision software routines that truncate each product toward zero
+  (MulSF16, 0x2864). The runtime computes as the engine does (Opera's
+  arithmetic: the 64-bit sum of the products, shifted down 16).
+* **Code only data reaches**: the objects' state machines, a callback and
+  the models' drawing entries -- 22 seeds for the recompiler
+  (`09-recompiler.md`).
+* **The race's cels**: stretched, turned and bent (HDDX, HDDY) -- the
+  projector's fill rule, which the runtime now takes from 3DO's patent
+  (below) --, `USEAV` on a cel of the HUD's top box at (122, 11) (PIXC
+  0x1296: the frame buffer subtracted, sign-extended, halved),
+  `ReleaseInstrument` (SWI 2, 0x1d54: a started instrument and the
+  attachments playing on its FIFOs released), and `SetClipOrigin`,
+  `SetClipWidth`, `SetClipHeight` (GRAPHIX SWIs 3, 19 and 20: the clip moves
+  the engine's write address and REGCTL1).
+
+**The projector's fill rule**, read in 3DO's patent WO 94/10644 ("Spryte
+rendering system with improved corner calculating engine and improved
+polygon-paint engine", 1994; sections 5.1, 5.2, 6.5, 6.6): each source
+pixel's corners come from the corner engine (16.16 positions stepped by
+HDX/HDY with their four lowest bits cut away; HDX/HDY stepped by
+HDDX/HDDY at 20 bits); their fractions are cut away; the polygon of the
+four integer points is walked down its edges a row at a time (Bresenham
+from the upper end); each row paints from the left edge up to but not
+including the right edge, and the bottom-most row is not painted -- a
+pixel whose top-left corner is inside. The Munkee unit's short cuts were
+made from Regis's results. ACW and ACCW allow clockwise and
+counter-clockwise polygons. Opera's arbitrary path walks the same edges
+but paints the right-most pixel too; on square cels the rule gives what
+the runtime drew before, pixel for pixel (2,687 fields to the circuit
+screen compared).
