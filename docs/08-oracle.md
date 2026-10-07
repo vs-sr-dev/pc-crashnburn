@@ -76,3 +76,22 @@ So: **Phoenix is the reference for pictures and sound, run by the
 user**; the order of the game's OS calls and of its own messages comes
 from the runtime's trace (`pfboot`) alone, checked against the game's
 code. Opera is kept for automated runs of what it does run.
+
+## The first picture, beside Phoenix's (session 9)
+
+Three Phoenix screenshots (`panafz10`, 953 x 686 JPEG, in
+`D:/Tools/phoenix28/ph-win64/3DO`, outside the repositories): two of the
+logo movie's last frame, and one of the choice that follows -- the same
+frame with the two buttons, **CRASH'N BURN** (lit) and **PREVIEWS**, drawn
+over its lower part.
+
+The runtime's last field of the movie (`pfboot --frames`, VBL 1194, the
+VIRS line dropped) set beside the first two: the logo's bounding box
+gives a scale of 3.000 x 2.876 and puts the whole 320 x 240 field at
+(-2, -1) in Phoenix's picture -- less than one source pixel off, so
+Phoenix shows the 240 lines and 320 pixels with no crop. The logo's
+purple averages (149, 4, 196) in Phoenix and (153, 0, 201) here, within
+what the JPEG explains; the stars and the lettering fall in the same
+places. The movie's picture, the CLUT and the line pairs are right as far
+as one frame shows; the display control words (interpolation) are still
+not modelled.

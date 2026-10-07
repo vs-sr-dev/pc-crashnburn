@@ -861,9 +861,10 @@ With that, `launchme` plays its first movie, the Crystal Dynamics logo
 (`EXTRA.1`), to its end: 20 seconds of guest time, 1,194 blanks, the
 game's own code decoding into its two screens while the runtime shows them
 as the VDLs say -- `pfboot --frames` writes 530 different fields: a disc
-flying past a planet in a sun's glare, then the logo (by eye, against the
-oracle's notes: the animated logo comes first; not yet set beside
-Phoenix's own pictures). The OS calls of those 20
+flying past a planet in a sun's glare, then the logo. Its last field
+matches Phoenix's screenshot of the same moment (`08-oracle.md`, "The
+first picture, beside Phoenix's"): the same place to within a pixel, the
+logo's purple within a few levels. The OS calls of those 20
 seconds are few kinds: 228 reads through the eight IOReqs `CDIO_OpenAFile`
 made on the movie (0xc3 to 0xca, polled with `LookupItem`), 705
 `DisplayScreen`s alternating screens 12 and 15, 218 SPORT copies and 242
