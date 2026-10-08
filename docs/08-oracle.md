@@ -184,3 +184,11 @@ the game's logo, as on the user's FZ-10 -- the user confirmed it in the
 window, PREVIEWS included. The preview runs very smoothly here (no time
 for the cel engine, as in the race); left so, as for Crash 'n Burn's race:
 Total Eclipse is to be one of the titles taken on later.
+
+The user since (2026-10-08): the preview runs **much faster than on the
+console**, not only smoother -- its logic steps once a frame, so the
+console's slowness was part of its pace, known and wanted. The race
+looks smoother here, not faster. Where a game's pace rests on the frames
+the console manages, the runtime would have to charge the cel engine's
+time (or the game be paced otherwise): the user will compare such games
+side by side with the console. Nothing changed yet.
