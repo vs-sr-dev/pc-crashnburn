@@ -177,3 +177,10 @@ The line between this and the radar: this is a recompilation, not a
 cycle-faithful emulator -- what the code does stays (the radar's clip is
 the game's and the OS's logic), the hardware's limits do not (frames
 dropped for want of time).
+
+**The disc's loop and the preview** (session 14): with `pfboot --boot` the
+pause menu's QUIT leads to the Total Eclipse preview (`/Orion`) and back to
+the game's logo, as on the user's FZ-10 -- the user confirmed it in the
+window, PREVIEWS included. The preview runs very smoothly here (no time
+for the cel engine, as in the race); left so, as for Crash 'n Burn's race:
+Total Eclipse is to be one of the titles taken on later.
