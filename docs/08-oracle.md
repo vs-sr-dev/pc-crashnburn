@@ -143,7 +143,8 @@ than at session 13's 7740.
 
 **The radar out of its box** (session 14): the race's radar lines run
 past the left of its box to the screen's edge in the runtime, on Phoenix
-and on the user's FZ-10 alike -- GRAPHIX's `SetClipOrigin` refusing the
+and on the user's FZ-10 alike, and in other players' recordings of the
+game the user looked at (so not a matter of version or dump) -- GRAPHIX's `SetClipOrigin` refusing the
 game's origin (`03-executables.md`). A glitch that looks like the port's
 can be the original's: the console is the judge.
 
