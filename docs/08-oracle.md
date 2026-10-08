@@ -161,3 +161,15 @@ The Rankout screen after the race (field 40,390 on: "RANKOUT: YOU FAILED
 TO PLACE. 3 CONTINUES REMAIN.", CONTINUE and QUIT) has no Phoenix shot; the
 user, looking at the fields, confirmed it is the real game's -- the chosen
 option flickers by design, CONTINUE by default.
+
+**The race's start, slower on the console** (session 14): the user's FZ-10
+drops frames at the start of a race and recovers later on the circuit;
+the runtime and Phoenix hold the frames from the start (Opera, on a
+homebrew of the user's, did too). The runtime's clock counts the ARM60's
+clocks but not the cel engine's work (`DrawCels` takes no guest time;
+Opera's MADAM counts none either) nor the bus it shares: even on the CPU
+alone the start is the hard part -- fields 7810-7930, about one frame in
+five takes 3 fields instead of 2, against 5 in 500 later in the race --
+and the cel engine's time would add most where the six cars are close.
+**The user's choice: leave it.** The game's and the OS's code run
+unchanged; running better than the console is not a fault of the port.
