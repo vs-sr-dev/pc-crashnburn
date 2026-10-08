@@ -144,10 +144,11 @@ than at session 13's 7740.
 **The movies' smoothness** (the user: the window smoother than Phoenix,
 the movies above all) is not the ARM60's speed: the intro movie decodes
 all its 24 frames a second in about half the console's CPU time and
-waits out the rest, at 1 us a safe point and in clocks alike. What Phoenix
-shows of it -- its frames a second, and the movie's length from the
-dialog to Select Game (here 1309 to 4495, 53 s) -- is still to be
-measured there.
+waits out the rest, at 1 us a safe point and in clocks alike. Played side
+by side with the clock in clocks, the user found the window and Phoenix
+**at par**: the same length, the same feel. Both slow down at the same
+places in the movies -- frames the file itself holds longer
+(`03-executables.md`, "The movie's pace is in the file").
 
 The Rankout screen after the race (field 40,390 on: "RANKOUT: YOU FAILED
 TO PLACE. 3 CONTINUES REMAIN.", CONTINUE and QUIT) has no Phoenix shot; the

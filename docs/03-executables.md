@@ -1214,3 +1214,16 @@ before about 40,460 leaves the car short of the line: the race takes
 about 150 fields more than before). QUIT (`down@40670`, `a@40770`, A held
 to 40,460) ends the program after 808,823 OS calls (935,186 before: the
 waiting loops go round fewer times).
+
+**The movie's pace is in the file.** The intro movie (`EXTRA.1`, opened by
+`CDIO_OpenAFile` after the dialog; the game's own format, not a
+DataStream) is a run of records, a type word first. A frame (type 2 or 9,
+0x3a50) sets the next frame's time to `gf_VBLNumber` + 2 (the word at
++0x74 of GrafBase, whose pointer is at 0x6497c), and the record after
+every frame is a type 7 (0x3ca0) whose word N holds the frame 2 x N
+fields more: 483 frames in fields 2000-3199, 483 type-7 records. So each
+frame's length -- 2, 4 or 6 fields, or a long hold of 30 to 88 -- is
+written in the file, and the runs at 1 us a safe point and in clocks show
+the same 984 pictures from the dialog to Select Game with the same gaps
+between them, 18 fields apart. The stretches of 6-field frames (10 a
+second) are where the user saw the movies slow down, on Phoenix as here.
