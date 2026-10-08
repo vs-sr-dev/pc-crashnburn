@@ -104,8 +104,9 @@ work moves to a second title, to draw 3dokit out further.
   polygon's top to (not including) its bottom, each from the left edge up
   to (not including) the right; ACW for rows whose left edge runs up, ACCW
   down. The patent's state tables are not in its text (`patent/wo644.txt`
-  in session 12's scratchpad). Stops: `MARIA`, `TWD`, `SKIPX`, PIXC MS
-  10/11, `LITERAL`, PRE0's BGND without the CCB's, an `LRFORM` cel not of
+  in session 12's scratchpad). PIXC MS 10/11 as Opera reads them (the
+  guide says the colour's bits the other way round). Stops: `MARIA`,
+  `TWD`, `SKIPX`, `LITERAL`, PRE0's BGND without the CCB's, an `LRFORM` cel not of
   16 bits, POVER 01, B15POS 10, USEAV's divider 3 or AV as source and
   control, PXOR with USEAV's subtraction, a read width unlike the write
   width.
