@@ -99,8 +99,10 @@ scheduled pad through its menus, and runs a race -- the 3D cels drawn by
 the projector as 3DO's patent describes it, the start matching the real
 game's beside Phoenix -- that a held A drives for three laps to the
 Rankout screen; told QUIT there, the program ends. `tools/play.cmd` plays
-it in a window (`pfboot --window`, the keyboard or a gamepad), on a guest
-clock that counts the ARM60's own clocks. There is no sound yet.
+the disc in a window (`pfboot --boot --window`, the keyboard or a gamepad)
+as the console starts it -- its scripts running the game and the Total
+Eclipse preview (`/Orion`, recompiled too) in turn -- on a guest clock that
+counts the ARM60's own clocks. There is no sound yet.
 
 ## Documentation
 
