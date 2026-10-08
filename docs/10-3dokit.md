@@ -466,3 +466,11 @@ in item numbers and OS addresses (0 lines otherwise). The self-test, the
 six memory runs and sixteen Graphics snapshots, and the 1,131 and 2,974
 frames are unchanged. This disc's 1993 File folio (20.19) keeps its own
 `CMD_STATUS` (0x28 bytes copied); its NVRAM is blank, nothing is mounted.
+
+| 3dokit | What |
+|---|---|
+| c11e36d | runtime: KernelBase's and the folios' versions as the kernel gives them (the folios' from the 20.21 kernel on); OPERAMATH 20.53's `MulVec3Mat33_F16` and `Dot3_F16`; `SleepAudioTicks`, a cue's deletion by KernelBase's version; the timer's unit 1 `CMD_READ` (pc-doctorhauzer's session 4, its `docs/06`) |
+
+Nothing here moves: this disc's kernel is 0.0, so KernelBase stays 0.0 and
+the folios get no versions; the trace to call 234 (529 lines) and the
+`--boot` run of 60,000 calls (124,396 lines) are 0903c17's byte for byte.
