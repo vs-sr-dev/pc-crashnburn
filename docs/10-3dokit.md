@@ -446,3 +446,9 @@ Nothing here moves: the self-test, the six memory runs and sixteen
 Graphics snapshots (with the old and the new `pfcheck`), the trace to call
 234, a `--boot` run of 60,000 calls and the 1,131 and 2,974 frames are
 9a38b90's byte for byte.
+
+| 3dokit | What |
+|---|---|
+| aceddb7 | runtime: Kernel -88 `GetSysErr` as the 20.21 kernel does it, its tables and the File folio's error texts read from the disc's own `os_code` (`pf_err`); another kernel stops (this disc's programs do not call it) |
+
+Nothing here moves: the same checks as 1f46573's, byte for byte.
