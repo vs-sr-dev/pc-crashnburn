@@ -381,3 +381,20 @@ memory runs and the sixteen Graphics snapshots pass; the three traces are
 (fields 8000-14,000) are ac527c2's byte for byte. The SDX2 path against
 `3dokit.audio`'s decoder: 401,092 values, 0 differ. The user heard the
 game's sound (menus, music, effects, movies) right.
+
+| 3dokit | What |
+|---|---|
+| 680b8d9 .. ea1b2e5 | PC-Immercenary's session 22 (the pipeline pivot onto this kit): `recomp.emit` -- every pc-derived address is the module's base (`mb`) plus the address linked at 0, so a program runs wherever it is loaded and several are loaded at once (`arm_load`, `arm_lookup` by address); `recomp.discover` -- the AIF header's relocation stub and zero-init as functions of their own extents, and a local return reached only through lr followed inside the function. The runtime: 23.10's File folio loaders (`LoadCode`, `ExecuteAsSubroutine`, `UnloadCode`), `GetDirectory`, the 1994 shell's `@`/`%`/`fg`, IOReqs with a reply port, `WaitPort`, semaphores made and deleted, the kernel's list vectors and `exit`, `ReadHardwareRandomNumber` (CLIO's RandSample a fixed xorshift32), `QueryGraphics`, audio `MakeSample`/`ScanSample`/`GetAudioItemInfo`/`UnloadInstrument` and the attachment calls (`MonitorAttachment`'s cue), 23.10's `dcsqxdhalfstereo`, gated `dcsqxdhalfmono`, `envelope` and `mixer2x2` in `pf_dsp`, PRE0's LITERAL bit passed over. The kit's own README and commits carry the detail |
+
+Checked at every one of those kit commits, against this game: its C++ is
+the old C++ with `(mb + ...)` around the pc-derived constants and nothing
+else (discovery adds no function to `launchme` or `Orion` that changes
+what runs); the three traces are `tr14`'s byte for byte; the 3,207 frames to
+the race's start and the 2,997 race frames are c6a174b's byte for byte; the
+sound over `--max-calls 100000` is c6a174b's byte for byte (the disc carries
+`mixer2x2`, `envelope` and `dcsqxdhalfstereo` with the same code as
+Immercenary's, unused there); pfcheck's six memory runs and sixteen
+Graphics snapshots pass; self-test 0 failures; the battery differs only by
+discovery's two AIF routines per program and their report line. The
+submodule moved here with `build/recomp` regenerated (the ArmModule
+descriptor changed): `launchme` 577 functions, `Orion` 138.
