@@ -414,3 +414,35 @@
   hand-written call the discovery now knows, `LoadInstrument`,
   `LoadSample` through the folio's IFF reader, `UnloadSample`, TWD): a
   real-time 3D preview, to its `exit(0)`. `tools/play.cmd` boots the disc.
+
+## Session 15 (2026-10-08) — the sound
+
+* **The DSP's instruments as their code** (kit c6a174b, `pf_dsp.cpp`):
+  the five the two programs load -- `mixer8x2`, `varmono8`, `sampler`,
+  `dcsqxdhalfmono` (the game), `mixer4x2` and `sampler` (Orion) -- read
+  in their DCOD (`python -m 3dokit.dsp FILE --dis`, the instruction set
+  as FreeDO reads it) and transliterated, known by the code's checksum;
+  run a frame at a time, 44,100 a second, in the folio's priority order,
+  the mixers adding into the bus `head.dsp` moves to the DAC. `sampler`
+  and `varmono8`: a phase stepped by `Frequency` (0x8000 a sample a
+  frame), the two samples interpolated, 16 bits or 8 (two a word, the
+  high byte first); `dcsqxdhalfmono`: SDX2 at half the rate, the frame
+  between two samples their mean.
+* **The DMA as AUDIOFOLIO programs it**: a sample to its end and then the
+  folio's 32 bytes of silence, a sustain loop over and over until the
+  release, linked attachments queued and taken over at the folio's
+  interrupt and daemon. The movies' sound is one sample, a ring the game
+  fills from EXTRA.1, linked to itself.
+* **The sound in the guest's time**, before each folio call and at each
+  audio tick: the same for the same pad. `pfboot --wav FILE`; the window
+  plays it (SDL3's audio stream).
+* **Checked**: the transliterated SDX2 against `3dokit.audio`'s decoder,
+  401,092 values of the logo movie, 0 differ; the bytes the DSP read from
+  the movie's ring are EXTRA.1's, in order, record after record. The
+  game decides by its own clock when a voice is done (`ChannelPlaying`),
+  so nothing waited on a sample's end. The battery, self-test, pfcheck,
+  the three traces and the frames to the race's start and in it byte for
+  byte as before.
+* **The user's verdict: the sound is right** -- menus, music, effects,
+  movies -- and a race ends and the second circuit loads. By the user's
+  rule the game is done until shown otherwise.

@@ -1,4 +1,4 @@
-# Next session: the sound
+# Next session: the game is done; a second title
 
 Where things stand: the translator is whole (`09-recompiler.md`: 22 seeds
 for `launchme`, 3 for `/Orion`), and on 3dokit's Portfolio runtime the
@@ -12,16 +12,20 @@ the pause menu's QUIT ends the program and the preview follows, then the
 game again from its logo, as on the user's FZ-10 (`08-oracle.md`).
 `tools/play.cmd` plays the disc in an SDL3 window in real time, the
 keyboard or a gamepad as the pad, the presses recorded. **The user's
-verdict so far: at par with Phoenix** -- smoother where the console
-struggles (no time is counted for the cel engine: left so, by the user's
-choice).
+verdict: at par with Phoenix** -- smoother where the console struggles (no
+time is counted for the cel engine: left so, by the user's choice) -- and
+since session 15 **with its sound, which the user heard right**: the
+menus, the music, the effects, the movies; a race ends and the second
+circuit loads. By the user's rule the game is done: **it works until shown
+otherwise** (a stop in the user's play is replayed from its record and
+fixed).
 
-Session 14 (`00-sessions.md`, `03-executables.md`'s last sections) made the
-guest's clock count the ARM60's clocks (the datasheet's cycles, 80 ns a
-clock: every field number moved), read the movies' pace in their file,
-added `MapCel`, PIXC MS 10/11, TWD, `LoadInstrument`, `LoadSample` and
-`UnloadSample`, left the OS's VIRS line out of the picture, found the
-radar's leak to be the original's, and gave the kit the shell.
+Session 15 (`00-sessions.md`, `03-executables.md`'s last section) gave the
+kit the DSP (`3dokit/runtime/pf_dsp.cpp`): the instruments the two
+programs load transliterated from their DSP code, the DMA as AUDIOFOLIO
+programs it, the sound made in the guest's time, to `--wav` and the
+window. Session 14 made the guest's clock count the ARM60's clocks, read
+the movies' pace in their file, and gave the kit the shell.
 
 ```sh
 python -m 3dokit.recomp --out build/recomp --optest \
@@ -54,35 +58,26 @@ the champion about 6415, the pre-race screen about 7357, the race about
 
 ## The work, in order
 
-The user's plan: **the sound, in a session of its own**; then the game
-counts as done by the user's rule, "it works until shown otherwise" (the
-pits and the second lap were such showings: the user plays, a stop is
-replayed from the record and fixed), and the work moves to a second title
-to draw 3dokit out further -- **Total Eclipse** among the titles to come
-(its preview, `/Orion`, already runs here).
+The user's plan: the game counts as done ("it works until shown
+otherwise"); the work moves to **a second title** to draw 3dokit out
+further -- **Total Eclipse** among the titles to come (its preview,
+`/Orion`, already runs here, with its sound). Which title, and whether in
+this repository's sibling or a new port, is the user's to say.
 
-1. **The sound.** Nothing plays yet: the runtime keeps the audio folio's
-   items and the values written to their knobs (`pf_audio.cpp`), but no
-   instrument makes a sample. To play: the DSP instruments the disc's
-   programs load -- `mixer8x2`, `sampler`, `varmono8`, `dcsqxdhalfmono`
-   (the game), `mixer4x2`, `sampler` (Orion) -- as native mixers fed by the
-   knobs' values (`3dokit.dsp` reads the DSP programs' knobs and their
-   calculations); attachments starting and ending (a one-shot sample never
-   ends yet: its end is the next thing the game's sound code waits on);
-   the samples' formats (8 and 16 bits, SDX2's 2:1 -- `tdk_stream` decodes
-   SDX2 for streams); the audio clock already ticks. Out through SDL3's
-   audio in the window, a WAV for runs without one. The sources: the
-   game's own sound (`gun.sfx` and the rest of CNBSFX, its music player
-   thread `_MEDPlayer`, 0x2c4e8, on cues), the movies' sound (DiskSound,
-   0x277c, fed from EXTRA.1's records), Orion's AIFF samples. Phoenix and
-   the console are the oracle (the user listens).
-2. **What the user's play reaches next** -- a placed race (`DoWinPlaceShow`,
-   the purse, `DoBlackMarketScreen`, `DoEnhancementScreen`, the next
-   track), Tournament, Options. A play recorded with `tools/play.cmd`
-   replays with `pfboot build/disc --boot $(cat build/play-pad.txt)`;
-   kept: `build/play-pad-pit.txt` (to the pits), `play-pad-lap2.txt`
-   (lap 2, 4th), `play-pad-pause.txt` (1st, then the pause's QUIT). Not
-   modelled in the window: the display control words (interpolation).
+1. **The second title** (a new port on 3dokit, as this one took the kit
+   from Immercenary): its disc read (`disc`, `aif`, `cel`, `audio`, `dsp
+   --used`), its programs recompiled, its run on the runtime to its first
+   stop, and from there as here. What it will likely ask of the kit: DSP
+   instruments no program loaded yet (each a transliteration of its code,
+   `pf_dsp.cpp`'s `kModels`; an unknown one plays silent and says so
+   once), envelopes, other folio calls; the event broker's other devices.
+2. **This game, when the user's play shows something**: replay the
+   record (`pfboot build/disc --boot $(cat build/play-pad.txt)`; kept:
+   `build/play-pad-pit.txt` to the pits, `play-pad-lap2.txt` lap 2,
+   `play-pad-pause.txt` the pause's QUIT) and fix the stop. Not reached
+   yet as far as the user has said: Tournament, Options, the black market
+   and enhancement screens after a placed race. Not modelled in the
+   window: the display control words (interpolation).
 3. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c).
@@ -129,6 +124,15 @@ to draw 3dokit out further -- **Total Eclipse** among the titles to come
 * **`LoadSample`** (`pf_audio.cpp`): the folio's IFF reader on a File folio
   stream; a chunk other than SSND above 500 bytes, a FORM or XREF inside,
   stop (the folio would read a stale buffer, or nest).
+* **The DSP** (`pf_dsp.cpp`): an instrument is its code transliterated,
+  matched by the code's checksum (`kModels`); `python -m 3dokit.dsp FILE
+  --dis` reads a new one. The sound is made up to the guest's present at
+  each folio call that changes the DSP and at each audio tick; it never
+  changes what the program sees but for the folio's daemon at an armed
+  chunk's end. A stopped instrument's `Output` keeps its last value (the
+  folio's own way). Not modelled: envelopes, the FIFO's buffering, cues on
+  attachments, output FIFOs (delay lines). Test runs with a window: set
+  `SDL_AUDIO_DRIVER=dummy` as well as `SDL_VIDEO_DRIVER=dummy`.
 * **Seeds**: a run that stops with "a call to an address that is no
   function's entry" wants one more; `litcode.py` and `reloccode.py` in
   session 12's scratchpad scan for candidates (drop those whose first word
@@ -138,14 +142,15 @@ to draw 3dokit out further -- **Total Eclipse** among the titles to come
   `GetDirectory` still stop), tasks on host threads one at a time,
   `--lenient` a preview only.
 * Every 3dokit change: the battery when the kit's Python changes (give its
-  script absolute output directories; since session 14 only Orion's
-  discovery report differs from afb58de's); the self-test (`selftest
+  script absolute output directories; c6a174b's is ac527c2's byte for
+  byte); the self-test (`selftest
   build/recomp/selftest/optest.txt build/recomp/selftest/launchme.txt`);
   `pfcheck` (the six memory runs, the sixteen Graphics snapshots -- the late
   ones 624 625 643 2101 2102: session 14's `pfcheck.sh`); the three traces
-  against `tr14`; the 2,764 frames to the race's start and the 2,997 of
-  fields 8000-14,000 (presses with 6405, A from 7749) against the last
-  commit's build, byte for byte. A change to the emitter or discovery
+  against `tr14`; the 3,207 frames of `--max-calls 100000` (to field 8792)
+  and the 2,997 of fields 8000-14,000 (presses with 6405, A from 7749)
+  against the last commit's build, byte for byte (session 15's
+  `frames.sh` takes the two builds). A change to the emitter or discovery
   means regenerating Immercenary's and OMF2097's C++ too (session 14's
   `rop`, `rop-build`). Scripts in session 14's scratchpad
   (`bc5937c1-.../scratchpad`): `traces.sh` (takes two pfboot builds),
@@ -157,15 +162,17 @@ to draw 3dokit out further -- **Total Eclipse** among the titles to come
   OMF2097's ISO in `9e8e479d-...`; session 12's `af.bin`, `om.bin`,
   `litcode.py`, `reloccode.py`, the patent's text in `3997990a-...`;
   session 13's `sheet.py`, `pair.py`, `zoom.py`, `grid.py`, `randsim.py`
-  in `d0e429b5-...`. Commit in the kit, `git pull --ff-only` in the
+  in `d0e429b5-...`; session 15's `frames.sh`, `wavstat.py` (a WAV's
+  loudness over time), `sdx2cmp.py`, `ringcmp.py`, `wrapcmp.py` in
+  `3a174178-...`. Commit in the kit, `git pull --ff-only` in the
   submodule, commit the port, record in `10-3dokit.md`.
 * Python or C++ with backslashes in it goes through the Write or Edit
   tool, never a shell heredoc -- and any source edit through Edit.
 
 ## Questions for the user
 
-* For the sound: Phoenix's and the console's ears are the oracle -- which
-  sounds first (the menus' effects, the music, the movies' sound)?
+* Which second title, and where: a new port repository on 3dokit (as this
+  one), Total Eclipse or another?
 
 ## Later, not next
 

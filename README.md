@@ -102,7 +102,13 @@ Rankout screen; told QUIT there, the program ends. `tools/play.cmd` plays
 the disc in a window (`pfboot --boot --window`, the keyboard or a gamepad)
 as the console starts it -- its scripts running the game and the Total
 Eclipse preview (`/Orion`, recompiled too) in turn -- on a guest clock that
-counts the ARM60's own clocks. There is no sound yet.
+counts the ARM60's own clocks.
+
+**Session 15**: the sound -- the DSP instruments the programs load, as
+their own DSP code transliterated, fed by the DMA as the 1993 audio folio
+programs it: the music, the effects and the movies' sound, in the window
+and to a WAV (`pfboot --wav`). The game now plays whole, as far as anyone
+has played it: by the user's rule it works until shown otherwise.
 
 ## Documentation
 

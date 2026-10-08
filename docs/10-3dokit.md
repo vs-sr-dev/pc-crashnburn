@@ -368,3 +368,16 @@ frames to the race's start and 2,997 race frames (fields 8000-14,000) are
 afb58de's byte for byte; `launchme` keeps its 46,350 instructions. Orion
 (three seeds) runs to its `exit(0)`; through the shell, the user's QUIT
 play goes on to the preview and back to the game's logo.
+
+| 3dokit | What |
+|---|---|
+| c6a174b | `runtime/pf_dsp` (new): the DSP -- `mixer8x2`, `mixer4x2`, `sampler` (with `oscupdownfp`), `varmono8`, `dcsqxdhalfmono` transliterated from their code, known by its checksum (FNV-1a of DCOD), run a frame at a time in the folio's priority order into the mixers' bus; the DSP's arithmetic as FreeDO reads it, a 20-bit ALU; the FIFOs' DMA (current and next chunks, the interrupt). `pf_audio`: the DMA programmed as AUDIOFOLIO does it (start 0x74b8, release 0x79a0, stop 0x7cf8, links 0x7860/0x7810/0x7788, the daemon 0x5cc0/0x5c04, `LinkAttachments` while playing); the sound made in the guest's time at each folio call and audio tick. `pf_main`: `--wav FILE`. `pf_window`: the sound through an SDL3 audio stream. `dsp.py`: the instruction set and the relocation chains documented, `--dis`. README (FreeDO credited) |
+
+The kit's Python changed: the battery's 51 files are ac527c2's byte for
+byte (`--dis` is new; `--verify` unchanged). Self-test 0 failures; the six
+memory runs and the sixteen Graphics snapshots pass; the three traces are
+`tr14` byte for byte; the 3,207 frames of the run to the race's start
+(`--max-calls 100000`, now reaching field 8792) and the 2,997 race frames
+(fields 8000-14,000) are ac527c2's byte for byte. The SDX2 path against
+`3dokit.audio`'s decoder: 401,092 values, 0 differ. The user heard the
+game's sound (menus, music, effects, movies) right.

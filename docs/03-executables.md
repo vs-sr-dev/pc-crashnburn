@@ -455,10 +455,10 @@ What the folio does with them (V20.19, built 5 September 1993):
 * **`ConnectInstruments`** (SWI 8, 0x8018): the source's variable by
   name, the destination's variable or else knob, and the destination's
   code relocated to read the source's: the DSP's own wiring.
-* **The DSP is not reproduced.** The runtime keeps, per instrument, every
-  value the folio would write to a knob resource, and its connections;
-  `StartInstrument` records the start. Nothing plays: the instruments
-  are to be native mixers by name (`06-attack-plan.md`).
+* **The DSP** (session 15, below): the runtime keeps, per instrument,
+  every value the folio would write to a knob resource, and its
+  connections, and hands them to the instrument's code transliterated
+  (`3dokit/runtime/pf_dsp.cpp`).
 * **No replay on the folio's code** as for GRAPHIX: the folio's items
   hold its own DSP bookkeeping (resource maps, code images, the DSP's
   memory), which is private (no SDK header) and which the game never
@@ -1324,3 +1324,77 @@ flight drawn in real time -- asteroids, lava, a planet, a base's corridors
 replays through the shell -- the game's `exit(0)` at the same call, the
 preview to its end, then the game from its logo to the CRASH 'N BURN /
 PREVIEWS choice, as the user's FZ-10 shows it.
+
+## The sound: the DSP's side of AUDIOFOLIO (session 15)
+
+**What the game plays.** `InitSound` (above) wires eight voices into one
+`mixer8x2`: voices 7-4 `sampler` (16 bits; the music, `_MEDPlayer` at
+0x2c4e8 on its cues, and the like), 3-0 `varmono8` (8 bits; CNBSFX's
+effects, `PlaySFX` 0x2acb0 and the rest). Each note or effect is
+`ReleaseInstrument`, `DetachSample`, `AttachSample`, `StartInstrument`
+with `AF_TAG_FREQUENCY` and the knobs tweaked; `sound_service` (0x2b7c4)
+plays what the game queued. Whether a voice is still playing is the
+game's own sum (`ChannelPlaying`, 0x2b3c4: the time now against the end
+time it stored), so no sample's end is waited on. The movies'
+`DiskSound` (0x2b38-0x2c64) disconnects voice 0 and connects a
+`dcsqxdhalfmono` in its place, attaches one sample -- a ring the game
+fills from EXTRA.1's sound records -- and links it to itself
+(`LinkAttachments(a, a)`): the folio plays it round and round. Orion:
+`mixer4x2` and `sampler`, AIFF samples by `LoadSample`.
+
+**The instruments' code** (`python -m 3dokit.dsp FILE --dis`):
+
+* `sampler.dsp` sets RBASE to its ring (MYRB), puts the FIFO's address in
+  R4 and `Frequency` in R8 and calls `oscupdownfp.dsp`: the phase (R5)
+  plus the frequency; negative (one sample further) the new sample becomes
+  the old and one word comes in, the phase less 0x8000; carry (two) two
+  words come in; then `old + phase * (new - old)` as `phase*old*2 - old`
+  and `new*phase*2 - that`; the output that times `Amplitude`.
+* `varmono8.dsp`: the same with bytes, two a word, the high one first;
+  `Toggle` negative when no byte of the held word (`SampleHold`) is left.
+* `dcsqxdhalfmono.dsp`: `CurState` counts frames; on odd ones the output
+  is the last value; on even ones the next byte (`CurState & 2`: the held
+  word's low byte, else a new word's high one) is squared with its sign
+  (`byte * |byte| * 2`), an odd byte adding it to the last value (CLIP),
+  an even byte being it; the frame plays the mean of the last value and
+  the new one. That is SDX2 at 22,050 Hz played at 44,100.
+* `mixer8x2.dsp`, `mixer4x2.dsp`: each side, the inputs times their gains
+  summed with CLIP, then added with CLIP to I memory 0x106 (left) and
+  0x107 (right); `head.dsp`, first in every frame, moves those to the DAC
+  (0x3fe, 0x3ff) and clears them, and counts the audio clock down.
+
+**The DMA, as the folio programs it** (CLIO's channel: a current chunk and
+a next one, the next reloaded each time the current runs out; the count
+registers hold the bytes less 4):
+
+* **Start** (0x74b8): the attachment becomes its FIFO's (the folio's
+  table at its globals +0xe8, 28 bytes a FIFO, +0x18); with a sustain loop
+  (or else a release loop) the sample from `START_AT` to the loop's end,
+  then the loop for ever; with neither the sample to its end, then the
+  silence (32 bytes the folio allocates at its start, 0xc3e8/0xc3ec) -- or
+  what is linked after it (0x795c, 0x7860) -- and the interrupt armed
+  (0x6578: when there is a cue, `AF_ATTF_FATLADYSINGS` or a link).
+* **Release** (0x79a0): a release loop next (0x76d0); else with a link,
+  the rest of the sample after a sustain loop that begins past frame 0
+  and ends before the sample, the link waiting behind it (0x7810, 0x65e8),
+  or the link next (0x7860); with no link the rest and then the silence,
+  or the silence. Armed again.
+* **Stop** (0x7cf8): the waiting chunk and the arming dropped (0x6648),
+  the channel off (0x9e34).
+* **The interrupt** (0x5854, a FIRQ per channel): the waiting chunk into
+  the next registers; when armed, the folio's daemon signalled, which
+  (0x5cc0, 0x5c04) ends the FIFO's attachment: stopped, then
+  `StopInstrument` for `FATLADYSINGS`, else the linked attachment takes
+  over (0x7788: queued after it what is linked to it, or the silence; armed
+  again), else the silence (0x7674); and its cue signalled.
+* `LinkAttachments` while the first plays (0x63d4): the second queued
+  next (0x7860), or with none the silence; armed.
+
+A stopped instrument leaves the DSP's program (the folio patches the jump
+over it) and its `Output` keeps its last value, which the mixer goes on
+reading: Orion ends on a constant 1398 (inaudible). Not modelled: the
+FIFO's few words of buffering (a sample starts at once). The SDX2 path was
+checked against `3dokit.audio`'s decoder (401,092 values, 0 differ) and the
+movie ring's bytes against EXTRA.1 (in order, record after record); the
+user heard the menus, the music, the effects and the movies right against
+Phoenix.
