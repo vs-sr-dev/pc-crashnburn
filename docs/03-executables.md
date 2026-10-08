@@ -1256,3 +1256,11 @@ the box are drawn up to the screen's edge. The disc's GRAPHIX is the one
 the console runs, so the real game should show the same -- and it does:
 the user saw the radar run out of its box on the left on Phoenix and on
 the real console (FZ-10) alike. A glitch in the original, not the port's.
+
+**Lap 2, after the pits** (the user's play, 4th place): a few-pixel dark
+cel (0x544b0, 16 bits uncoded, PIXC 0x6300: MS 11, DF 8 -- the pixel
+times a multiplier from its own colour, over 8) left of the place box at
+about field 19,690 stopped the cel engine; kit afb58de reads MS 10 and 11
+as Opera does (the guide's PIXC table has the colour's bits the other way
+round: not settled by any picture yet). The play replays past it from
+`build/play-pad-lap2.txt`.

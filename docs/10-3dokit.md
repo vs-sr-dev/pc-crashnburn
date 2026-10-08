@@ -346,3 +346,12 @@ are ca71e86's byte for byte without its first line. `MapCel`: six calls
 from the user's play replayed on GRAPHIX (`pfcheck`, 0 bytes differ); the
 division against GRAPHIX's run in armemu on 20,256 pairs, edge cases
 among them, 0 differ.
+
+| 3dokit | What |
+|---|---|
+| afb58de | `runtime/pf_cel`: PIXC MS 10 and 11, the multiplier from the decoded pixel's own colour (its component's top three bits + 1; MS 10's divider from the low two), as Opera's PPROC reads them -- the guide's PIXC section has the bits the other way round. |
+
+Only the runtime's C++ changed (no battery). Self-test 0 failures; six
+memory runs and sixteen Graphics snapshots pass; the three traces are
+`tr14` byte for byte; the 2,764 frames to the race's start are 62c582d's
+byte for byte (the mode stopped the run before, so nothing earlier used it).
