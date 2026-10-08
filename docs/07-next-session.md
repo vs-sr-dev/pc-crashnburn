@@ -53,6 +53,11 @@ Rankout 40,560.
    window: the display control words (interpolation), sound.
    **The movies**: at par with Phoenix (the user, session 14); their
    pace is the file's (each frame 2 fields plus a type-7 record's 2 x N).
+   **The pits** work since `MapCel` (kit 62c582d); the play that reached
+   them is kept as `build/play-pad-pit.txt` (with `--trace 1` it writes
+   gigabytes: grep it through a pipe, never into a file). **The radar**
+   leaking left of its box is GRAPHIX's `SetClipOrigin` refusing the
+   game's origin (`03-executables.md`): to confirm on Phoenix.
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),

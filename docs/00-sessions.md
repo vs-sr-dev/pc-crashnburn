@@ -393,3 +393,12 @@
   2101 2102); Immercenary's and OMF2097's traces byte for byte,
   `launchme`'s but for the time of its first wait; the pictures to Select
   Circuit the same in the same order, one transition in fewer steps.
+* **The user at par with Phoenix**: the window and Phoenix alike, the
+  movies' slow-downs at the same places in both -- the file's own frame
+  lengths (type-7 records: 2 fields plus 2 x N each).
+* **The user's play** went through a whole race into the pits, and
+  stopped at `MapCel` (kit 62c582d: as GRAPHIX does it, with its own
+  division; the pit screen then works). The picture's first line was the
+  OS's VIRS line, now left out (240 lines). The radar leaking left of its
+  box is GRAPHIX's own `SetClipOrigin` refusing the game's origin (the
+  clip still 320 wide): the real game should show it too.

@@ -1229,3 +1229,29 @@ between them, 18 fields apart. The user saw the movies slow down at the
 same places on Phoenix and here; the stretches of 6-field frames (10 a
 second) and the long holds are the likely ones (not yet matched place by
 place).
+
+**The pits, the first line, the radar** (session 14, the user's play in
+the window). Driving into the pits stopped at Graphics -4 `MapCel`
+(called from 0x21e6c and 0x220d8): the pit screen maps its cels onto
+quads. With it (kit 62c582d) the car rolls in, the RELOAD and REPAIR bars
+fill, and the race goes on; the user's recorded play replays to there
+(`--pad` lines from `build/play-pad.txt`).
+
+The picture's first line was the OS's **VIRS line**: GRAPHIX's system
+VDLs put one line of video DMA over its VIRS page between the forced-first
+entry and pre-display -- black, then 148 words of pen 1 (0xa0b539), 73 of
+pen 2 (grey 0x6d6d6d) -- the TV's vertical-interval reference, in the
+vertical blank where no TV shows it. The picture now starts at
+pre-display: 240 lines.
+
+**The radar leaks out of its box on the left, by GRAPHIX's own rule.** Each
+field the game draws the radar (0x22b1c on) with `SetClipOrigin(bm, 19,
+8)`, then `SetClipHeight(57)` and `SetClipWidth(83)`, `DrawCels`, and back
+to (0, 0), 320, 240. GRAPHIX's `SetClipOrigin` (SWI 3, 0x1e98) refuses an
+origin whose x plus the clip's *current* width passes the bitmap's width
+(0x1f28: `GRAFERR_BADCLIP`, 0xd55b9115), and the clip is still 320 wide
+when the origin is asked for: the origin stays (0, 0), the clip becomes 83
+x 57 from the screen's corner, and the radar's lines and blips left of
+the box are drawn up to the screen's edge. The disc's GRAPHIX is the one
+the console runs, so the real game should show the same; Phoenix, which
+runs the same folio, is the check.

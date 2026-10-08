@@ -334,3 +334,15 @@ fields no longer match the last build's: the pictures up to Select Circuit
 are the same in the same order (2,200 against 2,205: one transition, after
 the press on Select Character, in 2 steps instead of 7), at fields a
 little later.
+
+| 3dokit | What |
+|---|---|
+| 62c582d | `runtime/pf_graphics`: Graphics -4 `MapCel` as GRAPHIX's 0x14f4 does it, with GRAPHIX's own division (0x424, `__rt_sdiv` unrolled: bits 30 to 0, d = 0 gives 0x7FFFFFFF with n's sign); the display's picture from the pre-display entry on, so the system's VIRS line is no longer its first line (240 lines, not 241). |
+
+Only the runtime's C++ changed (no battery). Self-test 0 failures; the six
+memory runs and the sixteen Graphics snapshots pass; the three traces are
+session 14's (`tr14`) byte for byte; the 2,764 frames to the race's start
+are ca71e86's byte for byte without its first line. `MapCel`: six calls
+from the user's play replayed on GRAPHIX (`pfcheck`, 0 bytes differ); the
+division against GRAPHIX's run in armemu on 20,256 pairs, edge cases
+among them, 0 differ.
