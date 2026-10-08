@@ -1264,3 +1264,17 @@ about field 19,690 stopped the cel engine; kit afb58de reads MS 10 and 11
 as Opera does (the guide's PIXC table has the colour's bits the other way
 round: not settled by any picture yet). The play replays past it from
 `build/play-pad-lap2.txt`.
+
+**QUIT is not the end on the console: the disc's scripts loop.** The pause
+menu's QUIT (`PauseScreen`, 0x1f430: the menu's answer above 0 calls
+`exit(0)` at 0x1f4c8; CONTINUE, 0, leaves the loop) ends the program, by
+the game's own design. On the user's FZ-10 what follows is a "COMING SOON
+FROM CRYSTAL DYNAMICS" screen and the Total Eclipse trailer, then the
+whole game again from its logo. The disc's scripts (lines ended by CR
+alone) say why: `AppStartup` sets `exdir` and runs the script `runme1`;
+`runme1` is `^/ex #` then `runme2`; `runme2` is `^/Orion #` then `runme1`
+-- the game (`ex`, the same bytes as `launchme`), the preview (`Orion`,
+`Blazer/graphic/comingsoon.bin` among its files), the game, for ever, so
+the "system will start $boot/Launchme" of AppStartup's comment never
+comes. (Opera, session 3, stayed in the preview: the same loop.) pfboot
+runs `launchme` alone and ends with it; the scripts' loop is not run.
