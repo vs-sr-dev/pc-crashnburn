@@ -400,3 +400,23 @@ Graphics snapshots pass; self-test 0 failures; the battery differs only by
 discovery's two AIF routines per program and their report line. The
 submodule moved here with `build/recomp` regenerated (the ArmModule
 descriptor changed): `launchme` 577 functions, `Orion` 138.
+
+| 3dokit | What |
+|---|---|
+| aeb5a62 | PC-Immercenary's session 24: `runtime/pf_dsp` -- an interpreter of the DSP's instruction set (FreeDO's reading), which runs any instrument with no hand-written model from its own code (Immercenary's spires), with its relocations, imported subroutines and ring registers placed as the folio places them; `pfboot --dsp-code` (every instrument from its code) and `--dsp-check` (each model's frame against its code). `pf_audio`: the template carries DRLC, `LoadInsTemplate` loads the subroutines an instrument imports, 23.10's knob calculation 4. README |
+
+Runtime only, and the kit's Python only in a docstring: the battery's 51
+files are 5ff9786's byte for byte. This game's four models (its 1993
+`dcsqxdhalfmono`, `mixer8x2`, `sampler` with `oscupdownfp`, `varmono8`)
+against the interpreter over two plays (`play-pad-pause`, `play-pad-2`,
+3,000,000 calls each; 1.7 billion instrument frames): 0 differ; the sound
+of both plays is 5ff9786's byte for byte. Self-test 0 failures; the six
+memory runs pass; the three traces are 5ff9786's (and session 22's)
+byte for byte; the 1,131 frames to field 3216 and the 2,974 race frames
+are 5ff9786's byte for byte.
+
+**The baselines re-recorded on the drive's time** (5ff9786 is the
+reference now, the first with it): pfcheck's late snapshots 624, 625 and
+643 are calls 1092, 1093 and 1111 now -- the same `SetScreenColor` and
+two `DisplayScreen`, 468 calls later -- and all sixteen pass (0 bytes
+differ); `frames.sh`'s two runs give 1,131 and 2,974 frames.

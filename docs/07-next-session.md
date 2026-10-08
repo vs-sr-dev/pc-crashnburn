@@ -146,11 +146,14 @@ this repository's sibling or a new port, is the user's to say.
   byte); the self-test (`selftest
   build/recomp/selftest/optest.txt build/recomp/selftest/launchme.txt`);
   `pfcheck` (the six memory runs, the sixteen Graphics snapshots -- the late
-  ones 624 625 643 2101 2102: session 14's `pfcheck.sh`); the three traces
-  against `tr14`; the 3,207 frames of `--max-calls 100000` (to field 8792)
-  and the 2,997 of fields 8000-14,000 (presses with 6405, A from 7749)
+  ones 1092 1093 1111 2101 2102 since the drive's reading time, the same
+  calls that were 624 625 643: PC-Immercenary session 24's `pfcheck3.sh`); the three traces
+  against `tr14`; the 1,131 frames of `--max-calls 100000` (to field 3216)
+  and the 2,974 of fields 8000-14,000 (presses with 6405, A from 7749)
   against the last commit's build, byte for byte (session 15's
-  `frames.sh` takes the two builds). A change to the emitter or discovery
+  `frames.sh` takes the two builds; the baseline is 3dokit 5ff9786's, the
+  first with the drive's time, and the presses land at other moments
+  than they were written for). A change to the emitter or discovery
   means regenerating Immercenary's and OMF2097's C++ too (session 14's
   `rop`, `rop-build`). Scripts in session 14's scratchpad
   (`bc5937c1-.../scratchpad`): `traces.sh` (takes two pfboot builds),
