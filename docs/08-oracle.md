@@ -173,3 +173,7 @@ five takes 3 fields instead of 2, against 5 in 500 later in the race --
 and the cel engine's time would add most where the six cars are close.
 **The user's choice: leave it.** The game's and the OS's code run
 unchanged; running better than the console is not a fault of the port.
+The line between this and the radar: this is a recompilation, not a
+cycle-faithful emulator -- what the code does stays (the radar's clip is
+the game's and the OS's logic), the hardware's limits do not (frames
+dropped for want of time).
