@@ -16,11 +16,20 @@ clocks") measured what a safe point stood for (19 to 90 clocks: the guest
 ran 1.5 to 7 times the console's speed) and made the **guest's clock count
 the ARM60's clocks** (kit ca71e86: the datasheet's cycles a block at a
 time, 80 ns a clock). Every field number moved: the ones below are the new
-ones.
+ones. Later in session 14 the user's play reached the pits (`MapCel`), a
+second lap (PIXC MS 11) and the pause menu's QUIT, which on the console
+leads to the Total Eclipse preview and the game again: **`pfboot DISC
+--boot`** now starts the disc as the console's shell does (its scripts,
+`/ex` and **`/Orion`** -- recompiled, a real-time 3D preview -- in turn),
+and `tools/play.cmd` uses it (`03-executables.md`, "The disc as the console
+starts it").
 
 ```sh
 python -m 3dokit.recomp --out build/recomp --optest \
-  "launchme=build/disc/launchme+154b4,158fc,19530,19540,195bc,195dc,250f8,25abc,26780,26fec,27908,27cec,2f314,449a8,44fb0,44fcc,45058,450c8,45138,451fc,45564,45648"
+  "launchme=build/disc/launchme+154b4,158fc,19530,19540,195bc,195dc,250f8,25abc,26780,26fec,27908,27cec,2f314,449a8,44fb0,44fcc,45058,450c8,45138,451fc,45564,45648" \
+  "Orion=build/disc/Orion+2cd8,11138,1bef0"
+build/recomp-build/pfboot build/disc --boot --trace 0 --max-calls N [--pad ...] [--window]   # the whole disc
+build/recomp-build/pfboot build/disc/Orion --trace 0 --max-calls 300000   # the preview alone: exit(0) at 216,101
 cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
 ninja -C build/recomp-build                 # with C:\msys64\mingw64\bin on the path
 P="--pad a@1300x1 --pad a@4600x1 --pad a@4900x1 --pad a@6000x1 --pad a@6405x1 --pad a@7349x1 --pad a@7549x1"
@@ -58,6 +67,9 @@ work moves to a second title, to draw 3dokit out further.
    window: the display control words (interpolation), sound.
    **The movies**: at par with Phoenix (the user, session 14); their
    pace is the file's (each frame 2 fields plus a type-7 record's 2 x N).
+   A play recorded with `tools/play.cmd` now replays with `pfboot build/disc
+   --boot $(cat build/play-pad.txt)` (earlier records, made on `launchme`
+   alone, replay the same way: the first program's boot is unchanged).
    **The pits** work since `MapCel` (kit 62c582d); the play that reached
    them is kept as `build/play-pad-pit.txt` (with `--trace 1` it writes
    gigabytes: grep it through a pipe, never into a file). **The radar**

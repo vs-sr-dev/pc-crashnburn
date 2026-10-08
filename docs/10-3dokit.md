@@ -355,3 +355,16 @@ Only the runtime's C++ changed (no battery). Self-test 0 failures; six
 memory runs and sixteen Graphics snapshots pass; the three traces are
 `tr14` byte for byte; the 2,764 frames to the race's start are 62c582d's
 byte for byte (the mode stopped the run before, so nothing earlier used it).
+
+| 3dokit | What |
+|---|---|
+| ac527c2 | `runtime/pf_file`, `pf_main`: `pfboot DISC --boot` -- the shell carrying out the disc's scripts from `startopera` on (aliases; `bg`, `bgkill`, `killkprintf`, `minmem` passed over; the OS's own programs under /System left to the runtime; every other program run to its end; scripts naming each other for ever), then `$boot/LaunchMe`; the File folio's streams for the OS's own code. `pf_time`, `pf_graphics`, `pf_io`: the clock, GRAPHIX's field count and the timer's going on from one program's boot to the next. `pf_audio`: `LoadInstrument` (0x14ec), `LoadSample` (0x2884, the folio's IFF reader and AIFF handlers), `AF_TAG_SAMPLE` (0x3b00), `UnloadSample` (0x3c78). `pf_cel`: TWD. `recomp.discover`: `add`/`sub lr, pc, #k` before a pc write is a call; `local_returns` (hand-written local subroutines), which `recomp.emit`'s returns go back to. README |
+
+The kit's Python changed: the battery's 51 files are afb58de's but one,
+Orion's discovery report (55 more words of code; two pointer jumps now
+calls). Self-test 0 failures; the six memory runs and the sixteen Graphics
+snapshots pass; the three traces are `tr14` byte for byte; the 2,764
+frames to the race's start and 2,997 race frames (fields 8000-14,000) are
+afb58de's byte for byte; `launchme` keeps its 46,350 instructions. Orion
+(three seeds) runs to its `exit(0)`; through the shell, the user's QUIT
+play goes on to the preview and back to the game's logo.

@@ -1278,3 +1278,49 @@ alone) say why: `AppStartup` sets `exdir` and runs the script `runme1`;
 the "system will start $boot/Launchme" of AppStartup's comment never
 comes. (Opera, session 3, stayed in the preview: the same loop.) pfboot
 runs `launchme` alone and ends with it; the scripts' loop is not run.
+
+## The disc as the console starts it: the shell, and Orion (session 14)
+
+**`pfboot DISC --boot`** (kit, `pf_file.cpp`'s `pf_shell_boot`) carries out
+the disc's scripts as the console's shell does: `startopera` (aliases; its
+`bg` and `killkprintf`; the event broker and the three folios, the OS's own,
+left to the runtime), `AppStartup`, then `runme1` and `runme2` naming each
+other -- `/ex`, then `/Orion`, then `/ex` again, each run to its end. Each
+program boots a fresh OS (items, memory, folios); the guest's clock, the
+fields GRAPHIX counts and the timer's go on, so a `--pad` field or a
+`--record`ed play is the whole run's. On the console the OS stays loaded
+from one program to the next: item numbers and the OS's memory would carry
+on there, not here. `tools/play.cmd` now starts the disc so.
+
+**Orion, the Total Eclipse preview, recompiled** (its second module, three
+seeds: 0x2cd8, 0x11138 -- hand-written code reached by a literal --, and
+0x1bef0, a `return 0` reached by a pointer). It is not a movie: the title
+screen (`Blazer/graphic/comingsoon.bin`, "TOTAL ECLIPSE (c) 1993"), then a
+flight drawn in real time -- asteroids, lava, a planet, a base's corridors
+-- and the Crystal Dynamics logo; `exit(0)` after 216,101 OS calls (about
+950 fields). What it asked of the runtime:
+
+* **`LoadInstrument`** (audio -40, AUDIOFOLIO 0x14ec): `LoadInsTemplate`
+  then `AllocInstrument` with the priority.
+* **`LoadSample`** (audio -12, 0x2878 = `LoadSampleHere(name, 0, 0)`,
+  0x2884): the folio's IFF reader (0xa6d8) on a stream of the File folio
+  in the caller's task, AUDIOFOLIO's AIFF handlers (COMM: channels, frames,
+  bits, the 80-bit rate as 16.16 by 0x9f9c, AIFC's compression; MARK; INST
+  -- its high velocity read from the low velocity's byte, as the folio
+  does --; SSND: the data in memory from the caller's lists, a size word
+  first), then `CreateItem` of a sample with `AF_TAG_SAMPLE` (0x3b00: the
+  information copied). **`UnloadSample`** (-44, 0x3c78): deleted, then
+  the data given back.
+* **TWD** in a CCB (the cel engine skips a cel whose first pixel turns a
+  way it does not allow).
+* **Two shapes of hand-written call** in its renderer: `add lr, pc, #0`
+  then `ldr pc, [table]` (a call, as `mov lr, pc` is), and `addmi lr, pc,
+  #0x28` then a plain `b` to a subroutine ending in `mov pc, lr` (a local
+  subroutine: the function's returns go back into it when lr names one of
+  its words). Discovery's `local_returns`; Crash 'n Burn's `launchme` keeps
+  its 46,350 instructions (one return, 0x42328, gains the check).
+
+**The chain, played**: the user's play that ended on the pause menu's QUIT
+replays through the shell -- the game's `exit(0)` at the same call, the
+preview to its end, then the game from its logo to the CRASH 'N BURN /
+PREVIEWS choice, as the user's FZ-10 shows it.

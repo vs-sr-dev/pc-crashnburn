@@ -402,3 +402,15 @@
   OS's VIRS line, now left out (240 lines). The radar leaking left of its
   box is GRAPHIX's own `SetClipOrigin` refusing the game's origin (the
   clip still 320 wide): the real game should show it too.
+* **A second lap** (the user's play, 4th place): PIXC MS 11 read as Opera
+  reads MS 10 and 11 (kit afb58de; the guide has the colour's bits the
+  other way round).
+* **QUIT on the pause menu** calls `exit(0)` by the game's own design
+  (`PauseScreen`); the user's FZ-10 then shows the Total Eclipse preview
+  and the whole game again: the disc's scripts loop `/ex` and `/Orion`.
+  **`pfboot DISC --boot`** (kit ac527c2) carries them out as the console's
+  shell does, each program booting a fresh OS while the clock and the
+  fields go on; **Orion recompiled** (three seeds, two shapes of
+  hand-written call the discovery now knows, `LoadInstrument`,
+  `LoadSample` through the folio's IFF reader, `UnloadSample`, TWD): a
+  real-time 3D preview, to its `exit(0)`. `tools/play.cmd` boots the disc.

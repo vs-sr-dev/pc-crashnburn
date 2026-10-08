@@ -186,6 +186,22 @@ python -m 3dokit.recomp --out build/recomp --optest \
 
 575 functions with the 22 seeds, 553 without.
 
+**Orion** (session 14), the Total Eclipse preview, is the build's second
+module, with three seeds found the same way (session 12's `litcode.py` and
+`reloccode.py`, the candidates whose first word is no instruction dropped
+as data): 0x2cd8 (a function with a frame, reached by a pointer), 0x11138
+(hand-written, its address a literal at 0x11130) and 0x1bef0 (`mov r0, #0;
+mov pc, lr`). Its renderer also calls in two shapes the kit's discovery
+now knows (kit ac527c2): `add lr, pc, #0` before `ldr pc, [rT, rI, lsl #2]`
+(0x10fb0: a call, as `mov lr, pc` before it is) and `addmi lr, pc, #0x28`
+before a plain `b` to a subroutine ending in `mov pc, lr` (0x10ec4: a local
+subroutine; the function's returns go back to the word lr named,
+0x10ef4). 136 functions, 12,457 instructions.
+
+```sh
+python -m 3dokit.recomp --out build/recomp --optest "launchme=...+SEEDS" "Orion=build/disc/Orion+2cd8,11138,1bef0"
+```
+
 ## What is left
 
 * **The OS** (phase 4 of `06-attack-plan.md`): begun at the end of the
