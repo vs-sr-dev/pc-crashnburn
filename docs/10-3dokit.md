@@ -420,3 +420,7 @@ reference now, the first with it): pfcheck's late snapshots 624, 625 and
 643 are calls 1092, 1093 and 1111 now -- the same `SetScreenColor` and
 two `DisplayScreen`, 468 calls later -- and all sixteen pass (0 bytes
 differ); `frames.sh`'s two runs give 1,131 and 2,974 frames.
+
+| 3dokit | What |
+|---|---|
+| eb96a85 | README only: this port among the ports built on the kit, now that it is published; the recompiler and the runtime named in the opening |
