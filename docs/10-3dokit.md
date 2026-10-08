@@ -474,3 +474,12 @@ frames are unchanged. This disc's 1993 File folio (20.19) keeps its own
 Nothing here moves: this disc's kernel is 0.0, so KernelBase stays 0.0 and
 the folios get no versions; the trace to call 234 (529 lines) and the
 `--boot` run of 60,000 calls (124,396 lines) are 0903c17's byte for byte.
+
+| 3dokit | What |
+|---|---|
+| 075ad17 | runtime: an AIFF's 80-bit rate read a byte at a time (the word loads were unaligned: every AIFF rate was wrong); the kernel's quantum, equal priorities taking turns every 15 ms (pc-doctorhauzer's session 4, its `docs/06`) |
+
+Nothing here moves: the trace to call 234 and the `--boot` run of 60,000
+calls are c11e36d's byte for byte (this disc's samples in those runs are
+made by tags, not read from AIFF files; no two tasks of one priority are
+ready together).
