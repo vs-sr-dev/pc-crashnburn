@@ -385,6 +385,7 @@ game's sound (menus, music, effects, movies) right.
 | 3dokit | What |
 |---|---|
 | 680b8d9 .. ea1b2e5 | PC-Immercenary's session 22 (the pipeline pivot onto this kit): `recomp.emit` -- every pc-derived address is the module's base (`mb`) plus the address linked at 0, so a program runs wherever it is loaded and several are loaded at once (`arm_load`, `arm_lookup` by address); `recomp.discover` -- the AIF header's relocation stub and zero-init as functions of their own extents, and a local return reached only through lr followed inside the function. The runtime: 23.10's File folio loaders (`LoadCode`, `ExecuteAsSubroutine`, `UnloadCode`), `GetDirectory`, the 1994 shell's `@`/`%`/`fg`, IOReqs with a reply port, `WaitPort`, semaphores made and deleted, the kernel's list vectors and `exit`, `ReadHardwareRandomNumber` (CLIO's RandSample a fixed xorshift32), `QueryGraphics`, audio `MakeSample`/`ScanSample`/`GetAudioItemInfo`/`UnloadInstrument` and the attachment calls (`MonitorAttachment`'s cue), 23.10's `dcsqxdhalfstereo`, gated `dcsqxdhalfmono`, `envelope` and `mixer2x2` in `pf_dsp`, PRE0's LITERAL bit passed over. The kit's own README and commits carry the detail |
+| 5d008e9 | PC-Immercenary's session 23: 23.10's `fixedmonosample` and `directout` in `pf_dsp`, for its main menu's music. Runtime only, no emitter change: this game's traces, frames and sound the same byte for byte |
 
 Checked at every one of those kit commits, against this game: its C++ is
 the old C++ with `(mb + ...)` around the pc-derived constants and nothing
