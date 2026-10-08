@@ -424,3 +424,14 @@ differ); `frames.sh`'s two runs give 1,131 and 2,974 frames.
 | 3dokit | What |
 |---|---|
 | eb96a85 | README only: this port among the ports built on the kit, now that it is published; the recompiler and the runtime named in the opening |
+
+## pc-doctorhauzer's session 1 (the third game, Portfolio 20.21)
+
+| 3dokit | What |
+|---|---|
+| 81c0e85 | `aif`: an image with a NOP at 0x04 has no relocation list -- this disc's kernel (`os_code`, at 0x10000) had found one only by chance; its unpacked bytes are unchanged |
+| 9a38b90 | runtime: each folio's own version (`pf_system_version`) decides `CreateScreenGroup`'s buffer table and the Graphics and audio folios' node sizes; this disc's GRAPHIX 20.31 and AUDIOFOLIO 20.19 keep 1993's way |
+
+Nothing here moves: the battery's 51 files, the self-test, the six memory
+runs and sixteen Graphics snapshots, the three traces, a `--boot` run of
+60,000 calls and the 1,131 and 2,974 frames are eb96a85's byte for byte.
