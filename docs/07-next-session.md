@@ -157,6 +157,9 @@ Rankout 40,560.
   type-7 records hold -- `03-executables.md`.) What the user's play in
   the window reaches next.
 
+* On Phoenix, in a race: do the radar's lines (top left) run out of its
+  box on the left, to the screen's edge, as here?
+
 (The Rankout screen: the user confirmed it is the real game's; the chosen
 option flickers by design, CONTINUE by default.)
 
