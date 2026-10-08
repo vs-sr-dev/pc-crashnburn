@@ -141,6 +141,12 @@ that matched the first two shots come again pixel for pixel at 7609 and
 7655. The third shot's scene is at about 7810, the car a little faster
 than at session 13's 7740.
 
+**The radar out of its box** (session 14): the race's radar lines run
+past the left of its box to the screen's edge in the runtime, on Phoenix
+and on the user's FZ-10 alike -- GRAPHIX's `SetClipOrigin` refusing the
+game's origin (`03-executables.md`). A glitch that looks like the port's
+can be the original's: the console is the judge.
+
 **The movies' smoothness** (the user: the window smoother than Phoenix,
 the movies above all) is not the ARM60's speed: the intro movie decodes
 all its 24 frames a second in about half the console's CPU time and

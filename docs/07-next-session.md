@@ -57,7 +57,9 @@ Rankout 40,560.
    them is kept as `build/play-pad-pit.txt` (with `--trace 1` it writes
    gigabytes: grep it through a pipe, never into a file). **The radar**
    leaking left of its box is GRAPHIX's `SetClipOrigin` refusing the
-   game's origin (`03-executables.md`): to confirm on Phoenix.
+   game's origin (`03-executables.md`): the same on Phoenix and on the
+   real console (the user) -- the original's. Before "fixing" a glitch,
+   read what the disc's OS does and ask the user to look on the console.
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),
@@ -157,8 +159,8 @@ Rankout 40,560.
   type-7 records hold -- `03-executables.md`.) What the user's play in
   the window reaches next.
 
-* On Phoenix, in a race: do the radar's lines (top left) run out of its
-  box on the left, to the screen's edge, as here?
+* (Answered: the radar runs out of its box on the left on Phoenix and on
+  the real console too -- the original's own glitch.)
 
 (The Rankout screen: the user confirmed it is the real game's; the chosen
 option flickers by design, CONTINUE by default.)

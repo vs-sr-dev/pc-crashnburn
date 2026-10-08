@@ -1253,5 +1253,6 @@ origin whose x plus the clip's *current* width passes the bitmap's width
 when the origin is asked for: the origin stays (0, 0), the clip becomes 83
 x 57 from the screen's corner, and the radar's lines and blips left of
 the box are drawn up to the screen's edge. The disc's GRAPHIX is the one
-the console runs, so the real game should show the same; Phoenix, which
-runs the same folio, is the check.
+the console runs, so the real game should show the same -- and it does:
+the user saw the radar run out of its box on the left on Phoenix and on
+the real console (FZ-10) alike. A glitch in the original, not the port's.
