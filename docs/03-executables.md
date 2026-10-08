@@ -1225,5 +1225,7 @@ fields more: 483 frames in fields 2000-3199, 483 type-7 records. So each
 frame's length -- 2, 4 or 6 fields, or a long hold of 30 to 88 -- is
 written in the file, and the runs at 1 us a safe point and in clocks show
 the same 984 pictures from the dialog to Select Game with the same gaps
-between them, 18 fields apart. The stretches of 6-field frames (10 a
-second) are where the user saw the movies slow down, on Phoenix as here.
+between them, 18 fields apart. The user saw the movies slow down at the
+same places on Phoenix and here; the stretches of 6-field frames (10 a
+second) and the long holds are the likely ones (not yet matched place by
+place).

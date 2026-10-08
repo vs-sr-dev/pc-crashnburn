@@ -51,13 +51,8 @@ Rankout 40,560.
    $(cat build/play-pad.txt)`), traced; a record made before session 14
    replays differently (the fields moved). Not modelled yet in the
    window: the display control words (interpolation), sound.
-   **The movies' smoothness** is not the CPU's (the intro movie decodes
-   all its 24 frames a second in about half the console's time and waits
-   for the rest; 349 distinct pictures in fields 2000-3199, before and
-   after the change). Still to measure on Phoenix: the movie's frames a
-   second there and its length (here 1309 to 4495, 53 s). If Phoenix is
-   choppier, what the clock does not count is next: the cel engine's and
-   the DMA's share of the bus, the CD's reading time, the OS's own work.
+   **The movies**: at par with Phoenix (the user, session 14); their
+   pace is the file's (each frame 2 fields plus a type-7 record's 2 x N).
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),
@@ -152,10 +147,10 @@ Rankout 40,560.
 
 ## Questions for the user
 
-* With the clock in clocks, does the window still feel smoother than
-  Phoenix -- the movies, the race?
-* On Phoenix: how long is the intro movie (the dialog's choice to the
-  Select Game menu), and does it look choppy throughout or in places?
+* (Answered: with the clock in clocks the window and Phoenix are at par;
+  both slow down at the same places in the movies, which the file's own
+  type-7 records hold -- `03-executables.md`.) What the user's play in
+  the window reaches next.
 
 (The Rankout screen: the user confirmed it is the real game's; the chosen
 option flickers by design, CONTINUE by default.)
