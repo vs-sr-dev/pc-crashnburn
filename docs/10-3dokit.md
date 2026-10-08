@@ -435,3 +435,14 @@ differ); `frames.sh`'s two runs give 1,131 and 2,974 frames.
 Nothing here moves: the battery's 51 files, the self-test, the six memory
 runs and sixteen Graphics snapshots, the three traces, a `--boot` run of
 60,000 calls and the 1,131 and 2,974 frames are eb96a85's byte for byte.
+
+## pc-doctorhauzer's session 2
+
+| 3dokit | What |
+|---|---|
+| 1f46573 | runtime: the System images' decompressor in C++ (`pf_aif`, `pfboot FILE --unpack OUT`: 27 of the three discs' 28 compressed images as armemu unpacks them, this disc's `GRAPHIX`, `AUDIOFOLIO`, `os_code`, `misc_code`, `eventbroker` and `shell` among them); GRAPHIX laid in the OS's memory with its built-in font, for 20.45 only (`pf_font`: on this disc's 20.31 nothing is laid; the OS's allocations stop below 0x4E0000); `pfcheck` on GRAPHIX 20.45 (the 1993 path unchanged) |
+
+Nothing here moves: the self-test, the six memory runs and sixteen
+Graphics snapshots (with the old and the new `pfcheck`), the trace to call
+234, a `--boot` run of 60,000 calls and the 1,131 and 2,974 frames are
+9a38b90's byte for byte.
