@@ -452,3 +452,17 @@ Graphics snapshots (with the old and the new `pfcheck`), the trace to call
 | aceddb7 | runtime: Kernel -88 `GetSysErr` as the 20.21 kernel does it, its tables and the File folio's error texts read from the disc's own `os_code` (`pf_err`); another kernel stops (this disc's programs do not call it) |
 
 Nothing here moves: the same checks as 1f46573's, byte for byte.
+
+| 3dokit | What |
+|---|---|
+| 0903c17 | runtime: the Operator's `ram` device and the NVRAM behind its unit 3 (`pf_nvram`, `pfboot --nvram DIR`); the File folio 20.30's linked-memory filesystem (mount, `CreateFile`, `DeleteFile`, `DismountFileSystem`); a signed, privileged program's task; the shell running `System/Programs`' programs when the build has their modules (pc-doctorhauzer's session 3, its `docs/05`) |
+
+**A new baseline for the traces**: the `ram` device is one more item, made
+at the boot, so every later item's number is one greater and the OS's
+later allocations 0x70 bytes higher. Nothing else moves: built without the
+device, the trace to call 234 (529 lines) and the `--boot` run of 60,000
+calls (124,396 lines) are aceddb7's byte for byte; with it they differ only
+in item numbers and OS addresses (0 lines otherwise). The self-test, the
+six memory runs and sixteen Graphics snapshots, and the 1,131 and 2,974
+frames are unchanged. This disc's 1993 File folio (20.19) keeps its own
+`CMD_STATUS` (0x28 bytes copied); its NVRAM is blank, nothing is mounted.
