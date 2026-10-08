@@ -133,6 +133,22 @@ exhaust are where Phoenix has them, and alike to the eye at six times;
 the shots are JPEGs of a scaled picture, so a one-pixel edge (the patent's
 rule against Opera's) cannot be told from them.
 
+Since session 14 the guest's clock counts the ARM60's clocks
+(`03-executables.md`, "The guest's clock in the ARM60's clocks"), and the
+fields move: the same grid comes with the circuit taken at 6405, then
+presses at 7349 and 7549; the race starts at about 7602, and the fields
+that matched the first two shots come again pixel for pixel at 7609 and
+7655. The third shot's scene is at about 7810, the car a little faster
+than at session 13's 7740.
+
+**The movies' smoothness** (the user: the window smoother than Phoenix,
+the movies above all) is not the ARM60's speed: the intro movie decodes
+all its 24 frames a second in about half the console's CPU time and
+waits out the rest, at 1 us a safe point and in clocks alike. What Phoenix
+shows of it -- its frames a second, and the movie's length from the
+dialog to Select Game (here 1309 to 4495, 53 s) -- is still to be
+measured there.
+
 The Rankout screen after the race (field 40,390 on: "RANKOUT: YOU FAILED
 TO PLACE. 3 CONTINUES REMAIN.", CONTINUE and QUIT) has no Phoenix shot; the
 user, looking at the fields, confirmed it is the real game's -- the chosen

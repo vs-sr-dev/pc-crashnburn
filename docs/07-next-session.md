@@ -5,31 +5,30 @@ code only data reaches), and on 3dokit's Portfolio runtime `launchme`
 boots, plays its logo and intro movies, and with seven presses of A goes
 through Select Game, Select Character, Select Circuit, the circuit
 champion's movie and the pre-race screen into the **race**, whose start
-matches the user's Phoenix screenshots field for field once the grid is
-the same (`08-oracle.md`). With A held it drives three laps -- along the
-walls, through the water, the sand and the tunnel -- to the line in 6th
+matches the user's Phoenix screenshots once the grid is the same
+(`08-oracle.md`). With A held it drives three laps to the line in 6th
 place, shows the **Rankout** screen (3 continues, CONTINUE and QUIT), runs
-the race again on CONTINUE, and on QUIT unloads its sound and **ends**,
-returning 1 to the OS after 935,186 calls. Session 13
-(`03-executables.md`, "The race beside the real game, driven to its end")
-added DeleteItem of a task, `UnloadInsTemplate` and a template's deletion,
-`SetFunction` refused, `pfboot --pad ...+H` (a held press) and
-`--frames-at`; after the wrap-up, at the user's choice, `pfboot --window`:
-the display in an SDL3 window in real time, the keyboard and a gamepad as
-the pad, `--record FILE` writing the presses as `--pad` options
-(`tools/play.cmd`).
+the race again on CONTINUE, and on QUIT **ends**, returning 1 to the OS
+after 808,823 calls. `pfboot --window` (`tools/play.cmd`) shows it in an
+SDL3 window in real time with the keyboard or a gamepad as the pad.
+Session 14 (`03-executables.md`, "The guest's clock in the ARM60's
+clocks") measured what a safe point stood for (19 to 90 clocks: the guest
+ran 1.5 to 7 times the console's speed) and made the **guest's clock count
+the ARM60's clocks** (kit ca71e86: the datasheet's cycles a block at a
+time, 80 ns a clock). Every field number moved: the ones below are the new
+ones.
 
 ```sh
 python -m 3dokit.recomp --out build/recomp --optest \
   "launchme=build/disc/launchme+154b4,158fc,19530,19540,195bc,195dc,250f8,25abc,26780,26fec,27908,27cec,2f314,449a8,44fb0,44fcc,45058,450c8,45138,451fc,45564,45648"
 cmake -S build/recomp -B build/recomp-build -G Ninja -DCMAKE_CXX_COMPILER=clang++
 ninja -C build/recomp-build                 # with C:\msys64\mingw64\bin on the path
-P="--pad a@1300x1 --pad a@4600x1 --pad a@4900x1 --pad a@6000x1 --pad a@6356x1 --pad a@7300x1 --pad a@7500x1"
+P="--pad a@1300x1 --pad a@4600x1 --pad a@4900x1 --pad a@6000x1 --pad a@6405x1 --pad a@7349x1 --pad a@7549x1"
 build/recomp-build/pfboot build/disc/launchme --trace 0 --max-calls 100000 $P --frames DIR   # the race's start, Phoenix's grid
-build/recomp-build/pfboot build/disc/launchme --trace 0 --max-calls 1300000 $P --pad a@7700+40000 \
-  --frames DIR --frames-at 8000-60000/50        # three laps, Rankout, the race again (~2.5 min)
-build/recomp-build/pfboot build/disc/launchme --trace 0 --max-calls 1100000 $P --pad a@7700+32500 \
-  --pad down@40500x1 --pad a@40600x1            # ... QUIT: the program ends
+build/recomp-build/pfboot build/disc/launchme --trace 0 --max-calls 1300000 $P --pad a@7749+40000 \
+  --frames DIR --frames-at 8000-60000/50        # three laps, Rankout, the race again (~3 min)
+build/recomp-build/pfboot build/disc/launchme --trace 0 --max-calls 1100000 $P --pad a@7749+32711 \
+  --pad down@40670x1 --pad a@40770x1            # ... QUIT: the program ends
 build/recomp-build/pfboot build/disc/launchme --max-calls 34100 [--trace 2] [--snap N DIR]
 python -m 3dokit.pfcheck build/disc/System/Kernel/os_code DIR... --graphix build/disc/System/Folios/GRAPHIX
 ```
@@ -37,30 +36,28 @@ python -m 3dokit.pfcheck build/disc/System/Kernel/os_code DIR... --graphix build
 Run `python -m 3dokit.recomp` from `D:\Homebrew6` (the kit) while the kit
 has uncommitted work. **Always give `--max-calls`**: the game waits for
 ever on every screen. In the race `--frames` writes about 230 KB a field:
-use `--frames-at` for anything long. Fields: dialog 1197, Select Game 4478,
-Select Character 4642, Select Circuit 6187, the champion about 6356, the
-pre-race screen about 7310, the race 7543, the start given about 7720, the
-line about 40,300, Rankout 40,390.
+use `--frames-at` for anything long. Fields: dialog 1210, Select Game 4495,
+Select Character 4645, Select Circuit 6187, the champion about 6415, the
+pre-race screen about 7357, the race about 7602, the line about 40,450,
+Rankout 40,560.
 
 ## The work, in order
 
-1. **What the user found in the window**: how its speed compares with
-   Phoenix (the guest's 1 us a safe point sets how much a field holds;
-   the window only holds the guest back), and the next stops the user's
-   play reaches -- a placed race (`DoWinPlaceShow`, the purse,
-   `DoBlackMarketScreen`, `DoEnhancementScreen`, the next track),
-   Tournament, Options. A play that stops can be run again from
-   `build/play-pad.txt` (`pfboot ... $(cat build/play-pad.txt)`), traced.
-   Not modelled yet in the window: the display control words
-   (interpolation), sound.
-   **The guest's speed**: the user found the window smoother than Phoenix,
-   the movies above all. Measured here: the intro movie shows 17.5
-   distinct frames a second (350 in fields 2000-3199), the race 30 (one
-   every two fields, the game's own cap: it never misses one). A safe point
-   is worth 1 us (`pf_time.cpp`, an estimate); if the ARM60 here is faster
-   than the console's, the game draws more than it would. To tell: the
-   intro movie's length on Phoenix (here about 53 s, field 1306 to 4478)
-   and its frames a second there; then `g_pf_safe_point_ns` calibrated.
+1. **What the user finds in the window** with the clock in clocks: the
+   feel against Phoenix now, and the next stops the user's play reaches --
+   a placed race (`DoWinPlaceShow`, the purse, `DoBlackMarketScreen`,
+   `DoEnhancementScreen`, the next track), Tournament, Options. A play
+   that stops can be run again from `build/play-pad.txt` (`pfboot ...
+   $(cat build/play-pad.txt)`), traced; a record made before session 14
+   replays differently (the fields moved). Not modelled yet in the
+   window: the display control words (interpolation), sound.
+   **The movies' smoothness** is not the CPU's (the intro movie decodes
+   all its 24 frames a second in about half the console's time and waits
+   for the rest; 349 distinct pictures in fields 2000-3199, before and
+   after the change). Still to measure on Phoenix: the movie's frames a
+   second there and its length (here 1309 to 4495, 53 s). If Phoenix is
+   choppier, what the clock does not count is next: the cel engine's and
+   the DMA's share of the bus, the CD's reading time, the OS's own work.
 2. **The kernel's messages on the 1993 code** (carried over): a `pfcheck`
    replay of `SendMsg`, `ReplyMsg`, `GetMsg` and `CreateSizedItem` of a port
    and a message on os_code (0x184d0, 0x186b8, 0x18bd4, 0x18418, 0x1898c),
@@ -72,9 +69,17 @@ line about 40,300, Rankout 40,390.
 ## Keep in mind
 
 * **The grid** is `rand`, advanced once a field by `GlueShell` while a menu
-  waits: any change to the presses before the circuit is taken (6356)
-  changes the grid -- 6300 gives the front row, 6356 Phoenix's back row.
-  `RandomlySeedCars` (0x2374), `StartCars` (0x15178).
+  waits and once a loop on the logo movie (so the CPU's speed moves it
+  too): any change to the presses before the circuit is taken (6405), or
+  to the clock, changes the grid. The circuit screen reads the pad every 7
+  fields; 6405 gives `Random(12)` = 3 (2,549 calls), Phoenix's back row.
+  `RandomlySeedCars` (0x2374), `StartCars` (0x15178); `gridpick.py` in
+  session 14's scratchpad finds the call counts that draw an order.
+* **The guest's clock** (`pf_time.cpp`, `recomp/emit.py`'s `clocks`): the
+  ARM6 datasheet's cycles, an N cycle two clocks, a failed condition one,
+  a multiply's from rs, paid a block at a time; 80 ns a clock. Not counted:
+  the OS's work (native), the cel engine's and DMA's share of the bus,
+  the CD's reading time.
 * **The pad in the race**: `TopOfFrame` reads it every field
   (`CNBReadJoystick`, 0x21b8); left and right steer, the control
   configuration's first mask accelerates (A in configuration 0; the table
@@ -116,17 +121,27 @@ line about 40,300, Rankout 40,390.
 * Every 3dokit change: the battery when the kit's Python changes (give
   its script absolute output directories); the self-test (`selftest
   build/recomp/selftest/optest.txt build/recomp/selftest/launchme.txt`);
-  `pfcheck` (the six memory runs, the sixteen Graphics snapshots); the
-  three traces (`launchme` to its 234th call, Immercenary's `p`,
-  OMF2097's `LaunchMe`) against session 12's (`tr12b` in its scratchpad,
-  still the same); the 2,687 fields to Select Circuit (`--max-calls
-  1300000`, the first six presses with 6300) against the last commit's
-  build, byte for byte (build the old kit via `git stash` into a separate
-  cmake directory). Scripts: session 11's `pfcheck.sh`, `traces.sh` (the
+  `pfcheck` (the six memory runs, the sixteen Graphics snapshots -- since
+  session 14 the late ones are 624 625 643 2101 2102: session 14's
+  `pfcheck.sh`); the three traces (`launchme` to its 234th call,
+  Immercenary's `p`, OMF2097's `LaunchMe`) against session 14's (`tr14`
+  in its scratchpad; `p` and `LaunchMe` are still session 12's); the
+  pictures to Select Circuit (`--max-calls 1300000`, the first six presses
+  with 6300, `--frames`) against the last commit's build, byte for byte
+  (build the old kit via `git stash` into a separate cmake directory, or
+  regenerate from the port's submodule while it is still the old commit).
+  A change to the emitter means regenerating Immercenary's and OMF2097's
+  C++ too: session 14's `rop` and `rop-build` (in `bc5937c1-.../scratchpad`)
+  are the current ones. Scripts: session 14's `traces.sh` (takes the two
+  pfboot builds), `pfcheck.sh`, `instrument.py` (a counter on every
+  instruction of a generated tree, windows of fields), `cycles.py`,
+  `byfunc.py`, `split.py` (clocks of a profile), `same.py`, `align.py`,
+  `seqcmp.py` (two runs' pictures compared), `gridpick.py` in
+  `bc5937c1-.../scratchpad`; session 11's `traces.sh` (it rebuilds; the
   self-test without its vectors: run that by hand) in
   `fb2fbdd2-.../scratchpad`; session 10's `cnb.dis`, `af.dis`,
   `graphix.dis` in `cfbf8bbb-.../scratchpad`; `battery.sh`, OMF2097's ISO
-  and `rop-build` in `9e8e479d-.../scratchpad`; session 11's `kdis.py` and
+  in `9e8e479d-.../scratchpad`; session 11's `kdis.py` and
   `os_code.bin`; session 12's `af.bin`, `om.bin`, the patent's text;
   session 13's `pair.py`, `zoom.py`, `sheet.py`, `grid.py` (the grid and
   `rand`'s state from a snapshot), `cars2.py`, `randsim.py`, `callers.py`
@@ -137,8 +152,10 @@ line about 40,300, Rankout 40,390.
 
 ## Questions for the user
 
-* Next: placing in a race by a scheduled pad, or the window with the
-  keyboard so that you drive?
+* With the clock in clocks, does the window still feel smoother than
+  Phoenix -- the movies, the race?
+* On Phoenix: how long is the intro movie (the dialog's choice to the
+  Select Game menu), and does it look choppy throughout or in places?
 
 (The Rankout screen: the user confirmed it is the real game's; the chosen
 option flickers by design, CONTINUE by default.)
@@ -154,7 +171,10 @@ option flickers by design, CONTINUE by default.)
   that returns deleted as the kernel does (0x168fc).
 * The timer's microseconds and `CMD_STATUS`; SPORT's own range checks.
 * The emitter's speed: flags only where read, literal pools folded (three
-  laps take about 2.5 minutes without frames).
+  laps take about 2.5 minutes without frames); a block's clocks cost one
+  subtraction.
+* What the guest's clock does not count: the cel engine's and the DMA's
+  share of the bus, the OS's own work, a CD's reading time.
 * A snapshot of the whole machine to start a run from.
 * Ghidra's function list against discovery's (`--against`).
 * `aif --scan` and `os_code`/`misc_code`; `portfolio --sites` on a

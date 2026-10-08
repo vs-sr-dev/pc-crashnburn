@@ -1153,3 +1153,64 @@ unloaded, the audio folio closed, the program's VRAM pool freed, a
   by its owner; its DSP side freed).
 * **`SetFunction`** (SWI 23, os_code 0x18308): `NOTPRIV` at once from a task
   without the privileged flag.
+
+## The guest's clock in the ARM60's clocks (session 14)
+
+**What a safe point was worth.** The user found the window smoother than
+Phoenix, the movies above all. A build of `launchme` with a counter on
+every instruction (a scratch copy of the generated C++, not the kit)
+counted what runs in three stretches of fields, and the ARM6 datasheet's
+cycles (S, N, I; an N cycle two clocks on the 3DO's uncached ARM60, as
+Opera counts it) turned the counts into clocks:
+
+| stretch | safe points | instructions a safe point | clocks a safe point |
+|---|---|---|---|
+| the intro movie, fields 2000-3199 | 20,020,000 | 15.6 | 52 |
+| Select Game waiting, 4480-4589 | 25,992 | 9.0 | 19 |
+| the race, 7800-8999 | 2,125,239 | 41.9 | 90 |
+
+At 1 us (12.5 clocks) a safe point the guest ran 1.5 to 7 times the
+console's speed, and no single figure fits all three. Since kit ca71e86
+the emitter counts the clocks themselves (`10-3dokit.md`) and the clock
+moves on 80 ns each.
+
+**The movie is not the CPU's.** The intro movie's player (`DoCNBIntro`,
+0x20b18) loops on `GetJoystick` and `FMV_DecompressFrame` (0x39d0), which
+returns at once until the frame's time comes (the word at +0x74 of the
+structure at 0x3a18's pointer against the frame's +0x2c): 6,276,801 calls
+in the 1200 fields, 483 frames decoded -- 24 a second. The waiting is 87 %
+of the clocks; the decoding (0x48ac and the rest of 0x39d0) 132 million
+clocks, 273,000 a frame, 22 ms at 12.5 MHz of the 41.7 ms a frame has.
+With the clock in clocks the movie still shows 349 distinct pictures in
+those fields, as before. So the console's ARM60 has the time to decode
+every frame; what makes Phoenix's movie less smooth is not the CPU's
+speed as counted here (the cel engine's and the DMA's share of the bus,
+the CD's reading time and the OS's own work are not counted).
+
+**The race holds its 30 frames.** With the clock in clocks the race's
+work is about three quarters of what a field holds (190 million clocks
+in 1200 fields against 208,500 a field); the race shows 297 to 300
+pictures every 600 fields over fields 8000-14,000, the game's own cap of
+one every two fields. The car's speed a field after the start is a little
+higher than before (080 against 069 at the same point of the start): the
+game scales its motion by the time a frame took.
+
+**The grid moves.** `rand` is advanced once a field on the menus but once
+a loop on the logo movie, and a loop now takes longer: 701 calls by field
+1300 instead of 1271, and `RandomlySeedCars` (0x2374, at about 20 fields
+after the press that takes the circuit) is reached after 2,500 calls
+instead of 3,093. The circuit screen reads the pad every 7 fields, so the
+press picks the call count in steps of 7; `Random(12)` = 3 (the user's
+Phoenix grid, 5th of 6) is drawn after 2,549 calls: the circuit taken at
+**6405** (6403 gives 2,542, 6407 the same as 6405). The presses after it
+move by 49 fields (7349 and 7549), the race starts about field 7602, and
+its pictures before the start are those that matched Phoenix's first two
+shots, pixel for pixel: session 13's 7547 is field 7609 now, its 7600 is
+7655.
+
+**Further on.** With A held from 7749 the car is over the line in 6th at
+about field 40,450 and the Rankout screen comes at 40,560 (A released
+before about 40,460 leaves the car short of the line: the race takes
+about 150 fields more than before). QUIT (`down@40670`, `a@40770`, A held
+to 40,460) ends the program after 808,823 OS calls (935,186 before: the
+waiting loops go round fewer times).

@@ -366,3 +366,30 @@
   a gamepad as the pad; `--record FILE` writes the presses as `--pad`
   options that replay the run. `tools/play.cmd` starts it; the user was
   playing in the first test window before it was even announced.
+
+## Session 14 (2026-10-08) — the guest's clock in the ARM60's clocks
+
+* **What a safe point was worth**: an instruction-counting build (scratch
+  only) and the ARM6 datasheet's cycles: a safe point stood for 19 clocks
+  on a menu, 52 in the intro movie, 90 in the race, so at 1 us each the
+  guest ran 1.5 to 7 times the console's speed.
+* **The clock in clocks** (kit ca71e86): the emitter counts each block's
+  clocks (an N cycle two, a failed condition one, a multiply's from rs),
+  the runtime moves the clock on 80 ns a clock (12.5 MHz).
+* **The movies**: the intro movie decodes its 24 frames a second in about
+  half the console's CPU time and waits for each frame's time; it shows
+  the same 349 pictures in 1200 fields before and after. Its smoothness
+  against Phoenix is not the CPU's: Phoenix's own figures are still to
+  measure.
+* **The race** holds its 30 frames a second with the clock in clocks
+  (about three quarters of each field's clocks used).
+* **The grid moves** (`rand` goes once a loop on the logo movie): the
+  user's Phoenix grid now comes with the circuit taken at 6405; then 7349,
+  7549, A held from 7749; the race starts at about 7602 and its first
+  fields are those that matched Phoenix, pixel for pixel. Rankout at
+  40,560; QUIT ends the program after 808,823 calls.
+* **Checks**: the battery byte for byte; self-test 0 failures; six memory
+  runs; sixteen Graphics snapshots (the late ones renumbered 624 625 643
+  2101 2102); Immercenary's and OMF2097's traces byte for byte,
+  `launchme`'s but for the time of its first wait; the pictures to Select
+  Circuit the same in the same order, one transition in fewer steps.

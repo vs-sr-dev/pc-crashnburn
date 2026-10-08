@@ -318,3 +318,19 @@ Circuit are f1af788's byte for byte.
 | efdcd36 | `runtime/pf_window`, `pf_event`: the record in LF lines and written at any exit; Esc no longer ends the window's run (the user's window closed mid-race, most likely on Esc). |
 
 The same checks as b7fe71b, all byte for byte.
+
+| 3dokit | What |
+|---|---|
+| ca71e86 | `recomp/emit`: the clocks the ARM60 takes (`clocks`: the ARM6 datasheet's S, N and I cycles, an N cycle two clocks, a failed condition one), paid at the start of each block (`ARM_TICK`), a conditional instruction's rest inside its `if`, a multiply's internal cycles from rs at run time (`arm_mul_m`). `runtime/arm60.h`, `pf.h`, `pf_time`: the budget in clocks, `ARM_POLL` a check only, the guest clock moved on 80 ns a clock (12.5 MHz; `g_pf_clock_ns`, `PF_POLL_EVERY` 1024 clocks) instead of 1 us a safe point. README |
+
+The kit's Python changed: the battery's 51 files are efdcd36's byte for
+byte (the emitter's output is not in it). Self-test 0 failures; the six
+memory runs pass; the sixteen Graphics snapshots pass with the late ones
+renumbered 624 625 643 2101 2102 (two fewer steps of a fade before them).
+The traces of Immercenary's `p` and OMF2097's `LaunchMe` are session 12's
+byte for byte; `launchme`'s to its 234th call differs in one line, the
+time its first wait begins (0.000822 s, was 0.000520). By design the
+fields no longer match the last build's: the pictures up to Select Circuit
+are the same in the same order (2,200 against 2,205: one transition, after
+the press on Select Character, in 2 steps instead of 7), at fields a
+little later.
