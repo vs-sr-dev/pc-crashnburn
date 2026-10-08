@@ -43,6 +43,11 @@ Rankout 40,560.
 
 ## The work, in order
 
+The user's plan (session 14): a race finished in the window and what it
+shows, then the sound; then the game counts as done by the user's rule,
+"it works until shown otherwise" (the pits were such a showing), and the
+work moves to a second title, to draw 3dokit out further.
+
 1. **What the user finds in the window** with the clock in clocks: the
    feel against Phoenix now, and the next stops the user's play reaches --
    a placed race (`DoWinPlaceShow`, the purse, `DoBlackMarketScreen`,
