@@ -489,3 +489,13 @@ ready together).
 | 5d23270 | README: pc-doctorhauzer among the ports, and the README swept (pc-doctorhauzer's session 5) |
 
 The README only: nothing to build or run.
+
+| 3dokit | What |
+|---|---|
+| b1b7739 | discovery finds a frameless function reached only by a pointer from a literal pool; Operamath's `MulMat33Mat33_F16`, Graphics' `FillRect`; cels with CCBPRE clear and DataStreams with no `SHDR` in the file readers (pc-escapefrommonstermanor's session 1, its `docs/10`) |
+
+Nothing here moves: this port's generated C++ is 5d23270's byte for byte
+-- three of its seeds (0x25abc, 0x2f314 and `Orion`'s 0x1bef0) are now
+found by discovery too, and stay on the command line, harmless --; the
+trace to call 234 (529 lines) and the `--boot` run of 60,000 calls
+(124,396 lines) are the same; this disc's cels and streams read as before.
