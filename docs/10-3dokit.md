@@ -483,3 +483,9 @@ Nothing here moves: the trace to call 234 and the `--boot` run of 60,000
 calls are c11e36d's byte for byte (this disc's samples in those runs are
 made by tags, not read from AIFF files; no two tasks of one priority are
 ready together).
+
+| 3dokit | What |
+|---|---|
+| 5d23270 | README: pc-doctorhauzer among the ports, and the README swept (pc-doctorhauzer's session 5) |
+
+The README only: nothing to build or run.
