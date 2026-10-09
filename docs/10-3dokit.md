@@ -499,3 +499,11 @@ Nothing here moves: this port's generated C++ is 5d23270's byte for byte
 found by discovery too, and stay on the command line, harmless --; the
 trace to call 234 (529 lines) and the `--boot` run of 60,000 calls
 (124,396 lines) are the same; this disc's cels and streams read as before.
+
+| 3dokit | What |
+|---|---|
+| 45a81b0 | the audio folio's envelopes (AUDIOFOLIO 20.27 to 23.10's code; this disc's 20.19 is another version, and an envelope made on it stops); GRAPHIX's font keyed by build as well as version; `pfcheck` for GRAPHIX 20.45 build 419 (pc-escapefrommonstermanor's session 2, its `docs/04` and `docs/10`) |
+
+Nothing here moves: this port's traces to call 234 (529 lines) and the
+`--boot` run of 60,000 calls (124,396 lines) are b1b7739's byte for byte;
+`launchme` makes no envelope, and GRAPHIX 20.31 has no font table here.
