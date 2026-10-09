@@ -507,3 +507,9 @@ trace to call 234 (529 lines) and the `--boot` run of 60,000 calls
 Nothing here moves: this port's traces to call 234 (529 lines) and the
 `--boot` run of 60,000 calls (124,396 lines) are b1b7739's byte for byte;
 `launchme` makes no envelope, and GRAPHIX 20.31 has no font table here.
+
+| 3dokit | What |
+|---|---|
+| 42a44c2 | the README: pc-escapefrommonstermanor among the ports, and the cel engine's missing time among the gaps -- this disc's Total Eclipse preview one of the two games that show it |
+
+The README only: nothing to build or run.
